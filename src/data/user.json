@@ -1,0 +1,20 @@
+[
+  {
+    "username": "test",
+    "nickname": "张三",
+    "avatar": "avatar.png",
+    "status": 10
+  },
+  {
+    "username": "abc",
+    "nickname": "李四",
+    "avatar": "avatar.png",
+    "status": 20
+  },
+  {
+    "username": "hello",
+    "nickname": "王五",
+    "avatar": "avatar.png",
+    "status": 10
+  } 
+]

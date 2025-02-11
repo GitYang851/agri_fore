@@ -1,0 +1,88 @@
+[
+  {
+    "id": 1,
+    "title": "iphone",
+    "stock": 1000,
+    "desc": "非常好用",
+    "image": "iPhone14.png",
+    "price": 5999,
+    "sizeList": [
+      {
+        "title": "蓝色"
+      },
+      {
+        "title": "红色"
+      },
+      {
+        "title": "紫色"
+      }   
+    ],
+    "status": 10
+  },
+  {
+    "id": 2,
+    "title": "苹果",
+    "stock": 1000,
+    "desc": "非常好吃",
+    "image": "苹果.png",
+    "price": "3.99",
+    "sizeList": [
+      {
+        "title": "10个"
+      },
+      {
+        "title": "20个"
+      },
+      {
+        "title": "40个"
+      },
+      {
+        "title": "80个"
+      },
+      {
+        "title": "100个"
+      }
+    ],
+    "status": 10
+  },
+  {
+    "id": 3,
+    "title": "香蕉",
+    "stock": 1000,
+    "desc": "非常好吃",
+    "image": "香蕉.png",
+    "price": "5.99",
+    "sizeList": [
+      {
+        "title": "1斤"
+      },
+      {
+        "title": "2斤"
+      },
+      {
+        "title": "4斤"
+      },
+      {
+        "title": "8斤"
+      }
+    ],
+    "status": 10
+  },
+  {
+    "id": 4,
+    "title": "MacBook",
+    "stock": 1000,
+    "desc": "非常好用",
+    "image": "macbook.png",
+    "price": 15999,
+    "sizeList": [
+      {
+        "title": "深空灰色"
+      },
+      {
+        "title": "银色"
+      }
+    ],
+    "status": 10
+  }
+]
