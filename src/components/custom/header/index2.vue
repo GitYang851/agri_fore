@@ -119,6 +119,7 @@ const toLogin = () => {
 const toLogout = () => {
   logout();
   router.push("/login"); 
+  localStorage.removeItem("token");
   ElMessage({
     message: "已退出登录",
     type: "info",

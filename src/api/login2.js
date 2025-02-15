@@ -1,18 +1,18 @@
 import request from '@/utils/request'
 
 export default {
-  register(param) {
+  register(data) {
     return request({
       url: '/user/register',
       method: 'post',
-      params: param,
+      data: data,
     })
   },
-  login(param) {
+  login(data) {
     return request({
       url: '/user/login',
       method: 'post',
-      params: param,
+      data: data,
     })
   },
 }

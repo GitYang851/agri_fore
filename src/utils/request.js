@@ -25,12 +25,12 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   function (res) {
     const code = res.data.code || 200
-    const msg = errorCode[code] || res.data.msg
+    const msg = res.data.msg || errorCode[code]
     if (code === 200) {
-      return Promise.resolve(res.data)
+      return Promise.resolve(res.data);
     } else {
-      ElMessage({ message: msg, type: 'error' })
-      return Promise.reject(new Error(msg))
+      ElMessage({ message: msg, type: 'error' });
+      return Promise.reject(new Error(msg));
     }
   },
   function (error) {

@@ -12,6 +12,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "agri_fore3": "file:",
     "axios": "^1.7.9",
     "element-plus": "^2.9.4",
     "pinia": "^2.3.1",

@@ -12,14 +12,14 @@
 
     <el-form :model="form" ref="form" :rules="rules" label-width="80px" class="login-form">
       <h2 class="title">农产品销售系统登录</h2>
-      <el-form-item label="账号" prop="username">
-        <el-input v-model="form.username" clearable></el-input>
+      <el-form-item label="账号" prop="account">
+        <el-input v-model="form.account" clearable></el-input>
       </el-form-item>
       <el-form-item label="密码" prop="password">
         <el-input v-model="form.password" type="password" clearable show-password></el-input>
       </el-form-item>
       <el-form-item>
-        <el-button @click="toLogin('form')" type="primary" plain>登录</el-button>
+        <el-button @click="toLogin(this.$refs.form)" type="primary" plain>登录</el-button>
         <el-button type="danger" @click="toReg" plain>注册</el-button>
       </el-form-item>
     </el-form>
@@ -28,23 +28,22 @@
 </template>
 
 <script>
-
+import login2 from '@/api/login2';
 export default {
   data() {
-
     return {
       form: {
-        username: '',
+        account: '',
         password: ''
       },
       rules: {
-        username: [
-          {required: true, message: '账号不能为空', trigger: 'blur'},
-          {min: 2, max: 5, message: '长度在 2 到 6 个字符', trigger: 'blur'}
+        account: [
+          { required: true, message: '账号不能为空', trigger: 'blur' },
+          { min: 2, max: 5, message: '长度在 2 到 6 个字符', trigger: 'blur' }
         ],
         password: [
-          {required: true, message: '密码不能为空', onTrigger: 'blur'},
-          {min: 3, max: 16, message: '长度在 3 到 16 个字符', trigger: 'blur'}
+          { required: true, message: '密码不能为空', onTrigger: 'blur' },
+          { min: 3, max: 16, message: '长度在 3 到 16 个字符', trigger: 'blur' }
         ]
       }
     };
@@ -52,32 +51,28 @@ export default {
 
   methods: {
     toLogin(form) {
-      this.$refs[form].validate((valid) => {
+      form.validate((valid) => {
         if (valid) {
-          this.$message({
-            message: "登录成功",
-            showClose: true,
-            type: "success",
-            duration: 3000
-          })
-          this.$store.dispatch('Login',this.form)
-          this.$router.push("/")
+          login2.login(this.form).then(res => {
+            if (res.code === 200) {
+              this.$message.success('登录成功');
+              localStorage.setItem("token",res.data);
+              this.$router.push("/");
+            }
+          });
         } else {
-          return false
+          return false;
         }
       })
     },
     toReg() {
-      this.$router.push("/reg")
+      this.$router.push("/reg");
     }
-
-
   }
 }
 </script>
 
 <style scoped>
-
 .title {
   text-align: center;
   color: #70b053;
@@ -91,10 +86,12 @@ export default {
   padding: 30px;
   border-radius: 20px;
 }
+
 .container {
-  background-color: #e8f5e9; /* 浅绿色页面背景 */
+  background-color: #e8f5e9;
+  /* 浅绿色页面背景 */
   min-height: 100vh;
- 
+
   justify-content: center;
   align-items: center;
 }

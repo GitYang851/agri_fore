@@ -13,8 +13,8 @@
 
     <el-form :model="form" ref="form" :rules="rules" label-width="80px" class="login-form">
       <h2 class="title">农产品销售系统注册</h2>
-      <el-form-item label="账号" prop="username">
-        <el-input v-model="form.username" clearable></el-input>
+      <el-form-item label="账号" prop="account">
+        <el-input v-model="form.account" clearable></el-input>
       </el-form-item>
 
       <el-form-item label="密码" prop="password">
@@ -26,7 +26,7 @@
       </el-form-item>
 
       <el-form-item>
-        <el-button type="primary" @click="register('form')" plain>注册</el-button>
+        <el-button type="primary" @click="register(this.$refs.form)" plain>注册</el-button>
         <el-button type="danger" @click="toLogin" plain>登录</el-button>
       </el-form-item>
     </el-form>
@@ -34,6 +34,8 @@
 </template>
 
 <script>
+import login2 from '@/api/login2';
+
 export default {
   data(){
     let checkedPwd = (rule, value, callback) => {
@@ -47,12 +49,12 @@ export default {
     };
     return {
       form: {
-        username: '',
+        account: '',
         password: '',
         confirmPwd:""
       },
       rules: {
-        username: [
+        account: [
           {required: true, message: '账号不能为空', trigger: 'blur'},
           {min: 3, max: 5, message: '长度在 3 到 6 个字符', trigger: 'blur'}
         ],
@@ -71,14 +73,14 @@ export default {
       this.$router.push("/login")
     },
     register(form){
-      this.$refs[form].validate((valid) => {
+      form.validate((valid) => {
         if (valid) {
-          this.$message({
-            message: "注册成功",
-            showClose: true,
-            type: "success",
-            duration: 3000
-          })
+          login2.register(this.form).then(res=>{
+            if(res.code === 200){
+              this.$message.success("注册成功，请登录");
+              this.$router.push("/login");
+            }
+          });
         } else {
           return false
         }

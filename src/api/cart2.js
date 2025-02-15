@@ -2,11 +2,23 @@ import request from '@/utils/request'
 export default {
   //获取用户购物车列表
   getCartItems(userid) {
-    return request.get(`/cart/${userid}`)
+    return request({
+      url:`/cart/${userid}`,
+      method: 'get',
+      headers:{
+        token: localStorage.getItem('token')
+      }
+    })
   },
   //获取总价
   getTotal(userid) {
-    return request.get(`/cart/total/${userid}`)
+    return request({
+      url: `/cart/total/${userid}`,
+      method: 'get',
+      headers:{
+        token: localStorage.getItem('token')
+      }
+    })
   },
   //加入购物车
   add(param) {
@@ -14,6 +26,9 @@ export default {
       url: '/cart/add',
       method: 'post',
       params: param,
+      headers:{
+        token: localStorage.getItem('token')
+        }
     })
   },
   //编辑购物车
@@ -22,6 +37,9 @@ export default {
       url: '/cart/edit',
       method: 'post',
       params: param,
+      headers:{
+        token: localStorage.getItem('token')
+      }
     })
   },
   //删除购物车某商品
@@ -30,10 +48,19 @@ export default {
       url: '/cart/remove',
       method: 'post',
       params: param,
+      headers:{
+        token: localStorage.getItem('token')
+        }
     })
   },
   //清空购物车
   clear(userid) {
-    return request.get(`/cart/clear/${userid}`)
+    return request({
+      url:`/cart/clear/${userid}`,
+      method: 'get',
+      headers:{
+        token: localStorage.getItem('token')
+      }
+    })
   },
 }
