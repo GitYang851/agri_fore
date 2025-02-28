@@ -18,6 +18,7 @@
               >
               <el-button type="warning" @click="removeMany">移除</el-button>
               <el-button type="danger" @click="buyMany">购买</el-button>
+              <span>总金额：{{ total }}</span>
             </div>
           </el-card>
         </el-col>
@@ -31,7 +32,7 @@
                 @change="singleSelect"
               ></el-checkbox>
               <img :src="getImageUrl(product.image)" class="product-image" alt="" />
-              <div class="product-title">{{ product.title }}</div>
+              <div class="product-title">{{ product.productName }}</div>
 
               <div class="product-item-quantity">
                 <span class="product-quantity-title">数量：</span>
@@ -61,7 +62,7 @@
               </div>
 
               <el-button type="text" @click="removeOne(product)">移除</el-button>
-              <el-button type="text" @click="buyOne(product.id)">购买</el-button>
+              <el-button type="text" @click="buyMany">购买</el-button>
             </div>
           </el-card>
         </el-col>
@@ -71,18 +72,61 @@
 </template>
 
 <script setup>
-import { getList } from '@/api/cart'
 import { ElMessage } from 'element-plus'
 import { ref } from 'vue'
-
+import { getCartItems, getTotal, remove } from '@/api/cart2'
+import { getProduct } from '@/api/product2'
+import { makeNewOrder } from '@/api/order2'
 const allCheck = ref(false)
 const cartList = ref([])
+const price = ref(0)
+const total = ref(0)
 
 const initData = () => {
-  cartList.value = getList()
+  getCartItems().then((response) => {
+    // 获取购物车基础数据
+    const basicCartItems = response.data
+    // 为每个商品获取详细信息
+    const promises = basicCartItems.map((item) =>
+      getProduct(item.productId).then((productRes) => ({
+        ...item, // 保留购物车原始数据
+        ...productRes.data, // 合并商品详情数据
+        amount: item.quantity * productRes.data.price, // 计算总价
+      })),
+    )
+    // 等待所有商品详情加载完成
+    Promise.all(promises).then((fullCartItems) => {
+      cartList.value = fullCartItems
+    })
+  })
+
+  getTotal(1).then((response) => {
+    total.value = response.data
+  })
 }
 
 initData()
+
+//
+const buyMany = () => {
+  const selectedItems = cartList.value.filter((item) => item.selected)
+  if (selectedItems.length === 0) {
+    ElMessage.error('请选择要购买的商品')
+    return
+  }
+
+  // 构造符合后端要求的订单项结构
+  const orderItems = selectedItems.map((item) => ({
+    productId: item.productId, // 确保字段名与后端DTO一致
+    quantity: item.quantity,
+    price: item.price,
+    productName: item.productName,
+  }))
+  makeNewOrder(orderItems).then(() => {
+    ElMessage.success('订单创建成功！')
+  })
+}
+
 const getImageUrl = (name) => {
   return new URL(`@/assets/goods/${name}.png`, import.meta.url).href
 }
@@ -167,8 +211,6 @@ const buyOne = (id) => {
     duration: 3000,
   })
 }
-
-const buyMany = () => {}
 </script>
 
 <style scoped>

@@ -7,11 +7,11 @@
       <div class="right">
         <div class="title">
           <h4>商品名</h4>
-          <span>{{ product.title }}</span>
+          <span>{{ product.productName }}</span>
         </div>
         <div class="desc">
           <h4>商品描述</h4>
-          <span>{{ product.desc }}</span>
+          <span>{{ product.description }}</span>
         </div>
         <div class="size">
           <h4>商品款式</h4>
@@ -34,10 +34,10 @@
           </span>
         </div>
         <div class="quantity">
-          <el-input-number v-model="selectQuantity" :min="1" :max="999" :step="1"></el-input-number>
+          <el-input-number v-model="param.quantity" :min="1" :max="999" :step="1"></el-input-number>
           <el-button type="danger" plain>立即购买</el-button>
           <el-button type="primary" @click="addToCart">添加到购物车</el-button>
-          <el-button type="success">收藏</el-button>
+          <el-button type="success" @click="collection">收藏</el-button>
         </div>
       </div>
     </div>
@@ -45,13 +45,12 @@
 </template>
 
 <script setup>
-import { getProductList } from '@/api/product'
-import { add } from '@/api/cart'
 import { ref } from 'vue'
 
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-
+import { getProduct, collectProduct } from '@/api/product2'
+import { add } from '@/api/cart2'
 const route = useRoute()
 
 const productId = route.query['id']
@@ -66,17 +65,19 @@ const product = ref({
   sizeList: [],
   status: 1,
 })
-const selectQuantity = ref(1)
+//
+const param = ref({
+  productId: 0,
+  quantity: 0,
+})
+
 const currentId = ref(0)
-const list = ref([])
+
 const selectSize = ref('')
 
 const initData = () => {
-  list.value = getProductList()
-  list.value.forEach((item) => {
-    if (productId + '' === item.id + '') {
-      product.value = item
-    }
+  getProduct(productId).then((response) => {
+    product.value = response.data
   })
 }
 
@@ -89,20 +90,18 @@ const sizeChange = (index) => {
   selectSize.value = product.value.sizeList[index].title
 }
 
+//加入购物车
 const addToCart = () => {
-  let { title, price, image } = product.value
-  let size = selectSize.value
-  let quantity = selectQuantity.value
-  let amount = quantity * price
-  if (size === '') {
-    size = product.value.sizeList[0].title
-  }
-  add({ title, price, image, quantity, size, amount })
-  ElMessage({
-    message: '添加成功',
-    type: 'success',
-    showClose: true,
-    duration: 3000,
+  param.value.productId = productId
+  console.log(param)
+  add(param.value).then(() => {
+    ElMessage.success('加入购物车成功')
+  })
+}
+//收藏
+const collection = () => {
+  collectProduct(productId).then(() => {
+    ElMessage.success('收藏成功！')
   })
 }
 </script>

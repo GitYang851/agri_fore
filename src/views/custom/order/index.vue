@@ -17,7 +17,7 @@
         </el-col>
 
         <div v-if="orderList.length < 1">
-          <h1>订单为空，快去购物吧</h1>
+          <h1>空空如也</h1>
         </div>
 
         <el-col :span="24" v-for="(order, index) in orderList" :key="order.id">
@@ -26,14 +26,14 @@
               <div class="top">
                 <div class="create-time">{{ order.createTime }}</div>
                 <div class="order-no">
-                  订单号:<span>{{ order.orderNo }}</span>
+                  订单号:<span>{{ order.orderNum }}</span>
                 </div>
 
                 <div class="order-status">
                   订单状态：
                   <span v-if="order.status === 10" style="color: #c77a7a">交易关闭</span>
-                  <span v-if="order.status === 20">待支付</span>
-                  <span v-if="order.status === 30">待发货</span>
+                  <span v-if="order.orderStatus == '已创建'">待支付</span>
+                  <span v-if="order.orderStatus == '已付款'">待发货</span>
                   <span v-if="order.status === 40">待收货</span>
                   <span v-if="order.status === 50" style="color: #47c715">交易完成</span>
                 </div>
@@ -52,21 +52,20 @@
               <div class="content">
                 <img :src="getImageUrl(order.image)" class="product-image" alt="" />
                 <span class="product-title">{{ order.productTitle }}</span>
-                <span class="product-price"
-                  >单价：￥<span>{{ order.price }}</span></span
-                >
-                <span class="product-quantity"
-                  >数量：<span>{{ order.quantity }}</span></span
-                >
+
                 <span class="order-amount"
-                  >总价：<span>￥{{ order.amount }}</span></span
+                  >总价：<span>￥{{ order.total }}</span></span
                 >
 
-                <el-button v-if="order.status === 20" type="danger" plain @click="toPayOrder(index)"
-                  >支付</el-button
+                <el-button
+                  v-if="order.orderStatus == '已创建'"
+                  type="danger"
+                  plain
+                  @click="open(order)"
+                  >去支付</el-button
                 >
                 <el-button
-                  v-if="order.status === 40"
+                  v-if="order.orderStatus == '已付款'"
                   type="primary"
                   plain
                   @click="confirmReceipt(index)"
@@ -85,18 +84,51 @@
       <el-pagination background layout="prev, pager, next" :total="20"> </el-pagination>
     </div>
   </div>
+
+  <el-dialog v-model="visible" title="订单支付" width="500px">
+    <el-form :model="form">
+      <!-- 订单信息展示 -->
+      <el-form-item label="订单号">
+        <el-input v-model="form.orderNum" disabled />
+      </el-form-item>
+
+      <el-form-item label="支付方式" required>
+        <el-select v-model="form.paymentMethod" placeholder="请选择">
+          <el-option label="微信支付" value="WeChatPay" />
+          <el-option label="支付宝" value="AliPay" />
+          <el-option label="银联支付" value="UnionPay" />
+        </el-select>
+      </el-form-item>
+
+      <el-form-item label="支付金额" required>
+        <el-input-number
+          v-model="form.cashtendered"
+          :min="0.01"
+          :precision="2"
+          controls-position="right"
+        />
+      </el-form-item>
+    </el-form>
+
+    <template #footer>
+      <el-button @click="visible = false">取消</el-button>
+      <el-button type="primary" @click="submitPayment" :loading="loading"> 立即支付 </el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
-import { getOrderList } from '@/api/order'
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
+import { ElMessage } from 'element-plus'
 import { Delete } from '@element-plus/icons-vue'
-
+import { listAllOrder, selectOrderByStatus, makePayment } from '@/api/order2'
 const orderList = ref([])
 const default_nav_select = ref('10')
 
 const initData = () => {
-  orderList.value = JSON.parse(JSON.stringify(getOrderList()))
+  listAllOrder().then((response) => {
+    orderList.value = response.data
+  })
 }
 
 initData()
@@ -104,35 +136,66 @@ const getImageUrl = (name) => {
   return new URL(`@/assets/goods/${name}.png`, import.meta.url).href
 }
 const changeOrder = (tab) => {
-  let tabName = tab.props.name
-  initData()
-  if (tabName === '10') {
-    return
+  const orderstatus = tab.props.label
+  switch (orderstatus) {
+    case '全部订单':
+      listAllOrder().then((response) => {
+        orderList.value = response.data
+      })
+      break
+    case '待付款':
+      selectOrderByStatus({ status: '已创建' }).then((response) => {
+        orderList.value = response.data
+      })
+      break
+    case '待收货':
+      selectOrderByStatus({ status: '已付款' }).then((response) => {
+        orderList.value = response.data
+      })
+      break
+    default:
+      selectOrderByStatus({ status: orderstatus }).then((response) => {
+        orderList.value = response.data
+      })
   }
-  let list = []
-  for (let i = 0; i < orderList.value.length; i++) {
-    if (tabName === orderList.value[i].status + '') {
-      list.push(orderList.value[i])
-    }
-  }
-  orderList.value = list
 }
 
 // 支付
-const toPayOrder = (index) => {
-  orderList.value[index].status = 30
+const visible = ref(false)
+const loading = ref(false)
+const currentOrder = ref(null)
+const form = reactive({
+  orderNum: '',
+  paymentMethod: '',
+  cashtendered: 0,
+})
+
+const open = (order) => {
+  currentOrder.value = order
+  form.orderNum = order.orderNum
+  form.cashtendered = order.total
+  visible.value = true
 }
 
-const cancel = (index) => {
-  orderList.value[index].status = 10
-}
-
-const remove = (index) => {
-  orderList.value.splice(index, 1)
-}
-
-const confirmReceipt = (index) => {
-  orderList.value[index].status = 50
+function submitPayment() {
+  try {
+    loading.value = true
+    makePayment({
+      cashtendered: form.cashtendered, // 注意参数名与后端一致
+      paymentMethod: form.paymentMethod,
+      orderNUm: form.orderNum,
+    }).then(() => {
+      ElMessage.success('支付成功')
+      // 更新订单状态
+      if (currentOrder.value) {
+        currentOrder.value.status = 30
+        currentOrder.value.orderStatus = '已付款'
+      }
+      loading.value = false
+    })
+  } catch (error) {
+    ElMessage.error(error.response?.data?.message || '支付失败')
+  }
 }
 </script>
 

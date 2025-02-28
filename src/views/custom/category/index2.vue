@@ -52,8 +52,15 @@
     <el-main>
       <!-- 改用element的栅格系统保持一致性 -->
       <el-row :gutter="20">
-        <el-col v-for="product in productList" :key="product.id" :xs="12" :sm="8" :md="6" :lg="6">
-          <el-card class="product-card" shadow="hover" @click="toProductDetail(product.id)">
+        <el-col
+          v-for="product in productList"
+          :key="product.productId"
+          :xs="12"
+          :sm="8"
+          :md="6"
+          :lg="6"
+        >
+          <el-card class="product-card" shadow="hover" @click="toProductDetail(product.productId)">
             <div class="product-image-wrapper">
               <!-- 添加加载失败处理 -->
               <img
@@ -64,7 +71,7 @@
               />
             </div>
             <div class="product-info">
-              <h3 class="product-title">{{ product.title }}</h3>
+              <h3 class="product-title">{{ product.productName }}</h3>
               <div class="price-section">
                 <span class="product-price">￥{{ product.price }}</span>
                 <el-tag v-if="product.stock < 10" type="danger" effect="plain" size="small">
@@ -85,7 +92,7 @@ import { ArrowRight } from '@element-plus/icons-vue'
 import { getCategoryList, getProductList } from '@/api/category'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-
+import { listAllProducts, getProduct } from '@/api/product2'
 const router = useRouter()
 const categoryList = ref([])
 const productList = ref([])
@@ -95,11 +102,9 @@ const getImageUrl = (name) => {
 }
 const initData = () => {
   categoryList.value = getCategoryList()
-  let list = getProductList()
-  list.forEach((item) => {
-    if (item.status === 10) {
-      productList.value.push(item)
-    }
+
+  listAllProducts().then((response) => {
+    productList.value = response.data
   })
 }
 

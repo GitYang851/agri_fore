@@ -87,7 +87,6 @@ import { getProductList, getWarpList } from '@/api/home'
 import { getCategoryList } from '@/api/category'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { hello } from '@/api/try'
 
 const router = useRouter()
 const warpList = ref([])
@@ -103,10 +102,7 @@ const initData = () => {
     }
   })
 }
-hello().then((response) => {
-  console.log(response)
-  console.log('jjj')
-})
+
 const getImageUrl = (name) => {
   return new URL(`@/assets/goods/${name}.png`, import.meta.url).href
 }
