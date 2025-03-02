@@ -3,25 +3,28 @@
     <div class="container">
       <div class="left">
         <a href="/">
-          <img class="logo" src="@/assets/logo.png" alt="logo">
+          <img class="logo" src="@/assets/logo.png" alt="logo" />
         </a>
       </div>
       <div class="middle">
-        <span class="nav-span" :class="{'active':$route.path === '/'}"><router-link class="nav-link"
-                                                                                    to="/">首页</router-link></span>
-        <span class="nav-span" :class="{'active':$route.path === '/category'}"><router-link class="nav-link"
-                                                                                            to="/category">全部商品分类</router-link></span>
-        <span class="nav-span" :class="{'active':$route.path === '/cart'}"><router-link class="nav-link"
-                                                                                        to="/cart">购物车</router-link></span>
-        <span class="nav-span" :class="{'active':$route.path === '/order'}"><router-link class="nav-link"
-                                                                                         to="/order">订单</router-link></span>
+        <span class="nav-span" :class="{ active: $route.path === '/home' }"
+          ><router-link class="nav-link" to="/">首页</router-link></span
+        >
+        <span class="nav-span" :class="{ active: $route.path === '/category' }"
+          ><router-link class="nav-link" to="/category">全部商品分类</router-link></span
+        >
+        <span class="nav-span" :class="{ active: $route.path === '/cart' }"
+          ><router-link class="nav-link" to="/cart">购物车</router-link></span
+        >
+        <span class="nav-span" :class="{ active: $route.path === '/order' }"
+          ><router-link class="nav-link" to="/order">订单</router-link></span
+        >
       </div>
 
       <div class="right">
         <el-dropdown @command="handleCommand">
           <div class="el-dropdown-link nickname">
             <div style="line-height: 25px" v-if="!userinfo" width="50px">
-              
               <el-icon class="el-icon--right">
                 <setting />
               </el-icon>
@@ -49,38 +52,57 @@
     </div>
 
     <el-dialog title="修改密码" v-model="dialogFormVisible" width="500px">
-
-      <el-form :model="pwdForm" ref="pwdForm" :rules="updatePwdRules" label-width="80px" style="width: 400px">
-
+      <el-form
+        :model="pwdForm"
+        ref="pwdForm"
+        :rules="updatePwdRules"
+        label-width="80px"
+        style="width: 400px"
+      >
         <el-form-item label="旧密码" prop="oldPwd">
-          <el-input v-model="pwdForm.oldPwd" type="password" autocomplete="off" show-password clearable></el-input>
+          <el-input
+            v-model="pwdForm.oldPwd"
+            type="password"
+            autocomplete="off"
+            show-password
+            clearable
+          ></el-input>
         </el-form-item>
 
         <el-form-item label="新密码" prop="password">
-          <el-input v-model="pwdForm.password" type="password" autocomplete="off" clearable show-password></el-input>
+          <el-input
+            v-model="pwdForm.password"
+            type="password"
+            autocomplete="off"
+            clearable
+            show-password
+          ></el-input>
         </el-form-item>
 
         <el-form-item label="确认密码" prop="confirmPwd">
-          <el-input v-model="pwdForm.confirmPwd" type="password" autocomplete="off" clearable show-password></el-input>
+          <el-input
+            v-model="pwdForm.confirmPwd"
+            type="password"
+            autocomplete="off"
+            clearable
+            show-password
+          ></el-input>
         </el-form-item>
-
 
         <el-form-item>
           <el-button @click="updatePwd('pwdForm')" type="primary">提交</el-button>
         </el-form-item>
       </el-form>
-
     </el-dialog>
-
   </div>
 </template>
 
 <script setup>
-import {logout} from "@/api/login";
-import {ref,reactive} from "vue";
-import {useStore} from "vuex";
-import {useRouter} from "vue-router";
-import {ElMessage} from "element-plus";
+import { logout } from '@/api/login'
+import { ref, reactive } from 'vue'
+import { useStore } from 'vuex'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 
 const store = useStore()
 const router = useRouter()
@@ -88,7 +110,7 @@ const dialogFormVisible = ref(false)
 const pwdForm = ref({
   oldPwd: '',
   password: '',
-  confirmPwd: ''
+  confirmPwd: '',
 })
 const userinfo = ref({})
 
@@ -99,67 +121,65 @@ initData()
 
 const checkedPwd = (rule, value, callback) => {
   if (value === '') {
-    callback(new Error('请再次输入密码'));
+    callback(new Error('请再次输入密码'))
   } else if (value !== pwdForm.value.password) {
-    callback(new Error('两次输入密码不一致!'));
+    callback(new Error('两次输入密码不一致!'))
   } else {
-    callback();
+    callback()
   }
 }
 
 const updatePwdRules = reactive({
   oldPwd: [
-    {required: true, message: '旧密码不能为空', onTrigger: 'blur'},
-    {min: 3, max: 16, message: '长度在 3 到 16 个字符', trigger: 'blur'}
+    { required: true, message: '旧密码不能为空', onTrigger: 'blur' },
+    { min: 3, max: 16, message: '长度在 3 到 16 个字符', trigger: 'blur' },
   ],
   password: [
-    {required: true, message: '新密码不能为空', onTrigger: 'blur'},
-    {min: 3, max: 16, message: '长度在 3 到 16 个字符', trigger: 'blur'}
+    { required: true, message: '新密码不能为空', onTrigger: 'blur' },
+    { min: 3, max: 16, message: '长度在 3 到 16 个字符', trigger: 'blur' },
   ],
-  confirmPwd: [
-    {required: true, validator: checkedPwd, onTrigger: "blur"},
-  ]
+  confirmPwd: [{ required: true, validator: checkedPwd, onTrigger: 'blur' }],
 })
 
-const handleCommand = (command)=>{
+const handleCommand = (command) => {
   switch (command) {
     case 'updatePwd':
       // 打开修改密码窗口
       handlePwd()
-      break;
+      break
     case 'logout':
       // 退出系统
       toLogout()
-      break;
+      break
     case 'toCenter':
       toCenter()
-      break;
+      break
     default:
-      break;
+      break
   }
 }
 
-const toLogin = ()=>{
-  router.push("/login")
+const toLogin = () => {
+  router.push('/login')
 }
 
 const toLogout = () => {
   logout()
-  router.push("/login")
+  router.push('/login')
   ElMessage({
-    message: "已退出登录",
-    type: "info",
+    message: '已退出登录',
+    type: 'info',
     showClose: true,
   })
 }
-const toCenter=()=>{
-  router.push("/center")
+const toCenter = () => {
+  router.push('/center')
 }
 const resetForm = () => {
   pwdForm.value = {
     oldPwd: '',
     password: '',
-    confirmPwd: ''
+    confirmPwd: '',
   }
 }
 
@@ -192,7 +212,6 @@ a {
   justify-content: space-between;
 }
 
-
 .container .middle {
   width: 1480px;
   display: flex;
@@ -218,7 +237,7 @@ a {
 }
 
 .container .right {
-  margin-top:15px;
+  margin-top: 15px;
   margin-right: 50px;
   cursor: pointer;
   text-align: center;

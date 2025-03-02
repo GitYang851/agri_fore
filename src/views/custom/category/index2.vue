@@ -64,10 +64,9 @@
             <div class="product-image-wrapper">
               <!-- 添加加载失败处理 -->
               <img
-                :src="getImageUrl(product.image)"
+                :src="getProductImageUrl(product.productId)"
                 class="product-image"
                 alt="商品图片"
-                @error="handleImageError"
               />
             </div>
             <div class="product-info">
@@ -89,7 +88,7 @@
 <script setup>
 // 新增图标引入
 import { ArrowRight } from '@element-plus/icons-vue'
-import { getCategoryList, getProductList } from '@/api/category'
+import { getCategoryList } from '@/api/category'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { listAllProducts, getProduct } from '@/api/product2'
@@ -97,8 +96,10 @@ const router = useRouter()
 const categoryList = ref([])
 const productList = ref([])
 
-const getImageUrl = (name) => {
-  return new URL(`@/assets/goods/${name}.png`, import.meta.url).href
+//下载图片
+const getProductImageUrl = (productId) => {
+  // 添加时间戳参数避免缓存问题
+  return `/product/downloadPicture/${productId}?t=${Date.now()}`
 }
 const initData = () => {
   categoryList.value = getCategoryList()

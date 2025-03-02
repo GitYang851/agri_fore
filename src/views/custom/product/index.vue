@@ -35,7 +35,7 @@
         </div>
         <div class="quantity">
           <el-input-number v-model="param.quantity" :min="1" :max="999" :step="1"></el-input-number>
-          <el-button type="danger" plain>立即购买</el-button>
+          <el-button type="danger" plain @click="buynow">立即购买</el-button>
           <el-button type="primary" @click="addToCart">添加到购物车</el-button>
           <el-button type="success" @click="collection">收藏</el-button>
         </div>
@@ -51,6 +51,7 @@ import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getProduct, collectProduct } from '@/api/product2'
 import { add } from '@/api/cart2'
+import { makeNewOrder } from '@/api/order2'
 const route = useRoute()
 
 const productId = route.query['id']
@@ -68,7 +69,7 @@ const product = ref({
 //
 const param = ref({
   productId: 0,
-  quantity: 0,
+  quantity: 1,
 })
 
 const currentId = ref(0)
@@ -89,7 +90,19 @@ const sizeChange = (index) => {
   currentId.value = index
   selectSize.value = product.value.sizeList[index].title
 }
-
+//立即购买
+const buynow = () => {
+  makeNewOrder([
+    {
+      productId: productId,
+      productName: product.value.productName,
+      quantity: param.value.quantity,
+      price: product.value.price,
+    },
+  ]).then(() => {
+    ElMessage.success('创建订单成功！请前往付款！')
+  })
+}
 //加入购物车
 const addToCart = () => {
   param.value.productId = productId

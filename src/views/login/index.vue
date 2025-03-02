@@ -1,13 +1,11 @@
 <template>
   <div class="container">
     <div class="header">
-
       <div class="left">
         <a href="/">
-          <img class="logo" src="@/assets/logo.png" alt="logo">
+          <img class="logo" src="@/assets/logo.png" alt="logo" />
         </a>
       </div>
-
     </div>
 
     <el-form :model="form" ref="form" :rules="rules" label-width="80px" class="login-form">
@@ -23,52 +21,51 @@
         <el-button type="danger" @click="toReg" plain>注册</el-button>
       </el-form-item>
     </el-form>
-
   </div>
 </template>
 
 <script>
-import login2 from '@/api/login2';
+import login2 from '@/api/login2'
 export default {
   data() {
     return {
       form: {
         account: '',
-        password: ''
+        password: '',
       },
       rules: {
         account: [
           { required: true, message: '账号不能为空', trigger: 'blur' },
-          { min: 2, max: 5, message: '长度在 2 到 6 个字符', trigger: 'blur' }
+          { min: 2, max: 5, message: '长度在 2 到 6 个字符', trigger: 'blur' },
         ],
         password: [
           { required: true, message: '密码不能为空', onTrigger: 'blur' },
-          { min: 3, max: 16, message: '长度在 3 到 16 个字符', trigger: 'blur' }
-        ]
-      }
-    };
+          { min: 3, max: 16, message: '长度在 3 到 16 个字符', trigger: 'blur' },
+        ],
+      },
+    }
   },
 
   methods: {
     toLogin(form) {
       form.validate((valid) => {
         if (valid) {
-          login2.login(this.form).then(res => {
+          login2.login(this.form).then((res) => {
             if (res.code === 200) {
-              this.$message.success('登录成功');
-              localStorage.setItem("token",res.data);
-              this.$router.push("/");
+              this.$message.success('登录成功')
+              localStorage.setItem('token', res.data)
+              this.$router.push('/home')
             }
-          });
+          })
         } else {
-          return false;
+          return false
         }
       })
     },
     toReg() {
-      this.$router.push("/reg");
-    }
-  }
+      this.$router.push('/reg')
+    },
+  },
 }
 </script>
 

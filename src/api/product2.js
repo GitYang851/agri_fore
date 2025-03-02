@@ -58,11 +58,11 @@ export function uploadPicture(productId, file) {
   })
 }
 
-//   // 下载商品图片
-//   export function   downloadPicture(productId) {
-//     const response = await request.get(`/product/downloadPicture/${productId}`, {
-//       responseType: 'blob',
-//     })
-//     return URL.createObjectURL(new Blob([response]))
-//   },
-// }
+// 下载商品图片
+export function downloadPicture(productId) {
+  return request({
+    url: `/product/downloadPicture/${productId}`,
+    method: 'get',
+    responseType: 'blob', // 关键参数，指定响应类型为二进制
+  })
+}

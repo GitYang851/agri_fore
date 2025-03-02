@@ -28,7 +28,7 @@ import AdminUser from '@/views/admin/user/index.vue'
 import ProductDetail from '@/views/custom/product/index.vue'
 const routes = [
   {
-    path: '/login',
+    path: '/',
     name: 'login page', // 自定义的组件（页面）名称
     component: Login, // 导入的组件
   },
@@ -38,12 +38,12 @@ const routes = [
     component: Register, // 导入的组件
   },
   {
-    path: '/',
+    path: '/home',
     name: 'custom layout',
     component: CustomLayout,
     children: [
       {
-        path: '/',
+        path: '/home',
         component: CustomHome,
         meta: { title: '首页' },
       },

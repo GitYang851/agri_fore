@@ -37,21 +37,15 @@
         <el-table-column prop="price" label="商品价格" width="120"> </el-table-column>
 
         <el-table-column prop="image" label="商品图片" width="120">
-          <template v-slot="scope">
-            <el-popover placement="top-start" title="" trigger="hover">
-              <!-- <img
-                :src="require('@/assets/goods/' + scope.row.image)"
-                style="width: 250px; height: 250px"
-                alt=""
-              /> -->
-              <template #reference>
-                <!-- <img
-                  :src="require('@/assets/goods/' + scope.row.image)"
-                  style="width: 50px; height: 50px"
-                  alt=""
-                /> -->
-              </template>
-            </el-popover>
+          <template v-slot="{ row }">
+            <div class="image-container">
+              <img
+                :src="imageCache[row.id] || '/loading.gif'"
+                @load="loadProductImage(1)"
+                @error="handleImageError"
+                class="product-image"
+              />
+            </div>
           </template>
         </el-table-column>
 
@@ -63,7 +57,7 @@
         <el-table-column fixed="right" label="操作" width="200">
           <template v-slot="scope">
             <el-button link size="small">查看</el-button>
-            <el-button link size="small">编辑</el-button>
+            <el-button link size="small" @click="handleEdit(scope.row)">编辑</el-button>
             <el-button
               v-if="scope.row.status === 20"
               link
@@ -155,13 +149,55 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- 编辑商品对话框 -->
+    <el-dialog title="编辑商品" v-model="editDialogVisible">
+      <el-form :model="editProduct">
+        <el-form-item label="商品名">
+          <el-input v-model="editProduct.productName" autocomplete="off"></el-input>
+        </el-form-item>
+
+        <el-form-item label="商品价格">
+          <el-input-number
+            v-model="editProduct.price"
+            :precision="2"
+            :step="0.01"
+            :min="0.01"
+          ></el-input-number>
+        </el-form-item>
+
+        <el-form-item label="商品图片">
+          <el-upload action="#" list-type="picture-card" :auto-upload="false" :file-list="fileList">
+            <i class="el-icon-plus"></i>
+            <template #file="{ file }">
+              <img class="el-upload-list__item-thumbnail" :src="file.url" alt="" />
+            </template>
+          </el-upload>
+        </el-form-item>
+
+        <el-form-item label="商品库存">
+          <el-input-number v-model="editProduct.stock" :min="0" :step="1"></el-input-number>
+        </el-form-item>
+
+        <el-form-item label="商品描述">
+          <el-input type="textarea" v-model="editProduct.description"></el-input>
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="editDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitEditForm">确定</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onBeforeUnmount } from 'vue'
 import { ElMessage } from 'element-plus'
-import { listAllProducts, addproduct, searchProducts } from '@/api/product2'
+import { listAllProducts, addproduct, searchProducts, downloadPicture } from '@/api/product2'
 
 const default_nav = ref('30')
 const dialogFormVisible = ref(false)
@@ -178,7 +214,6 @@ const search = ref('')
 const productList = ref([])
 
 const initData = () => {
-  // productList.value = getProductList()
   listAllProducts().then((response) => {
     productList.value = response.data
   })
@@ -186,11 +221,11 @@ const initData = () => {
 
 initData()
 
+//搜索功能
 function toSearch() {
   try {
     searchProducts(search.value).then((response) => {
       productList.value = response.data
-      console.log(response.data)
     })
   } catch (error) {
     console.error('Error fetching products:', error)
@@ -219,6 +254,41 @@ const upSeal = (index) => {
 const downSeal = (index) => {
   productList.value[index].status = 20
 }
+
+//下载图片
+// 商品图片缓存对象
+const imageCache = ref({})
+
+// 获取图片方法
+const loadProductImage = (product) => {
+  try {
+    // 先检查缓存
+    if (imageCache.value[product.id]) {
+      return imageCache.value[product.id]
+    }
+
+    // 发起请求
+    const response = downloadPicture(product.id)
+
+    // 创建Blob URL
+    const blob = new Blob([response.data], { type: response.headers['content-type'] })
+    const imageUrl = URL.createObjectURL(blob)
+
+    // 加入缓存
+    imageCache.value[product.id] = imageUrl
+  } catch (error) {
+    console.error('图片加载失败:', error)
+
+    return '/default-product.jpg' // 默认图片
+  }
+}
+
+// 组件卸载时释放内存
+onBeforeUnmount(() => {
+  Object.values(imageCache.value).forEach((url) => URL.revokeObjectURL(url))
+})
+
+//添加商品
 const submitForm = async () => {
   try {
     const response = addproduct(newProduct.value)
@@ -235,6 +305,25 @@ const submitForm = async () => {
   } catch (error) {
     ElMessage.error(' 添加商品失败', error)
   }
+}
+
+// 新增编辑相关状态
+const editDialogVisible = ref(false)
+const editProduct = ref({
+  id: '',
+  productName: '',
+  price: 0.01,
+  stock: 1,
+  categoryId: 1,
+  description: '', // 修正拼写错误
+  image: '',
+})
+// 新增编辑方法
+const handleEdit = (row) => {
+  editProduct.value = { ...row }
+  // 处理图片显示
+
+  editDialogVisible.value = true
 }
 </script>
 

@@ -1,14 +1,11 @@
 <template>
   <div class="container">
-
     <div class="header">
-
       <div class="left">
         <a href="/">
-          <img class="logo" src="@/assets/logo.png" alt="logo">
+          <img class="logo" src="@/assets/logo.png" alt="logo" />
         </a>
       </div>
-
     </div>
 
     <el-form :model="form" ref="form" :rules="rules" label-width="80px" class="login-form">
@@ -34,59 +31,57 @@
 </template>
 
 <script>
-import login2 from '@/api/login2';
+import login2 from '@/api/login2'
 
 export default {
-  data(){
+  data() {
     let checkedPwd = (rule, value, callback) => {
       if (value === '') {
-        callback(new Error('请再次输入密码'));
+        callback(new Error('请再次输入密码'))
       } else if (value !== this.form.password) {
-        callback(new Error('两次输入密码不一致!'));
+        callback(new Error('两次输入密码不一致!'))
       } else {
-        callback();
+        callback()
       }
-    };
+    }
     return {
       form: {
         account: '',
         password: '',
-        confirmPwd:""
+        confirmPwd: '',
       },
       rules: {
         account: [
-          {required: true, message: '账号不能为空', trigger: 'blur'},
-          {min: 3, max: 5, message: '长度在 3 到 6 个字符', trigger: 'blur'}
+          { required: true, message: '账号不能为空', trigger: 'blur' },
+          { min: 3, max: 5, message: '长度在 3 到 6 个字符', trigger: 'blur' },
         ],
         password: [
-          {required: true, message: '密码不能为空', onTrigger: 'blur'},
-          {min: 3, max: 16, message: '长度在 3 到 16 个字符', trigger: 'blur'}
+          { required: true, message: '密码不能为空', onTrigger: 'blur' },
+          { min: 3, max: 16, message: '长度在 3 到 16 个字符', trigger: 'blur' },
         ],
-        confirmPwd: [
-          {required: true, validator: checkedPwd, onTrigger: 'blur'}
-        ]
-      }
-    };
+        confirmPwd: [{ required: true, validator: checkedPwd, onTrigger: 'blur' }],
+      },
+    }
   },
-  methods:{
-    toLogin(){
-      this.$router.push("/login")
+  methods: {
+    toLogin() {
+      this.$router.push('/')
     },
-    register(form){
+    register(form) {
       form.validate((valid) => {
         if (valid) {
-          login2.register(this.form).then(res=>{
-            if(res.code === 200){
-              this.$message.success("注册成功，请登录");
-              this.$router.push("/login");
+          login2.register(this.form).then((res) => {
+            if (res.code === 200) {
+              this.$message.success('注册成功，请登录')
+              this.$router.push('/')
             }
-          });
+          })
         } else {
           return false
         }
       })
-    }
-  }
+    },
+  },
 }
 </script>
 
