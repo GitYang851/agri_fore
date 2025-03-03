@@ -24,8 +24,8 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   function (res) {
-    const code = res.data.code || 200
-    const msg = res.data.msg || errorCode[code]
+    const code = res.code || 200
+    const msg = res.msg || errorCode[code]
     if (code === 200) {
       return Promise.resolve(res.data);
     } else {

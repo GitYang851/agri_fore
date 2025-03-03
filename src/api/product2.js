@@ -54,15 +54,19 @@ export function uploadPicture(productId, file) {
   formData.append('productId', productId)
 
   return request.post('/product/uploadPicture', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+    headers: {
+       'Content-Type': 'multipart/form-data',
+       'token': localStorage.getItem('token'),
+      },
   })
 }
 
-// 下载商品图片
-export function downloadPicture(productId) {
+// 编辑商品
+export function editProductById(data) {
   return request({
-    url: `/product/downloadPicture/${productId}`,
-    method: 'get',
-    responseType: 'blob', // 关键参数，指定响应类型为二进制
+    url: '/product/editProduct',
+    data: data,
+    method: 'post',
+    headers: { token: localStorage.getItem('token') },
   })
 }
