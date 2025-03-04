@@ -8,7 +8,7 @@
       </div>
       <div class="middle">
         <span class="nav-span" :class="{ active: $route.path === '/home' }"
-          ><router-link class="nav-link" to="/">首页</router-link></span
+          ><router-link class="nav-link" to="/home">首页</router-link></span
         >
         <span class="nav-span" :class="{ active: $route.path === '/category' }"
           ><router-link class="nav-link" to="/category">全部商品分类</router-link></span
@@ -160,12 +160,12 @@ const handleCommand = (command) => {
 }
 
 const toLogin = () => {
-  router.push('/login')
+  router.push('/')
 }
 
 const toLogout = () => {
   logout()
-  router.push('/login')
+  router.push('/')
   ElMessage({
     message: '已退出登录',
     type: 'info',

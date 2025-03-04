@@ -1,10 +1,20 @@
 import request from '@/utils/request'
 
 export function // 获取所有产品
-listAllProducts() {
+listAllProducts(param) {
   return request({
     url: '/product/listAllProduct',
     method: 'get',
+    params: param,
+    headers: { token: localStorage.getItem('token') },
+  })
+}
+export function // 获取所有产品
+listAllProduct() {
+  return request({
+    url: '/product/listAllProduct2',
+    method: 'get',
+
     headers: { token: localStorage.getItem('token') },
   })
 }
@@ -55,9 +65,9 @@ export function uploadPicture(productId, file) {
 
   return request.post('/product/uploadPicture', formData, {
     headers: {
-       'Content-Type': 'multipart/form-data',
-       'token': localStorage.getItem('token'),
-      },
+      'Content-Type': 'multipart/form-data',
+      token: localStorage.getItem('token'),
+    },
   })
 }
 

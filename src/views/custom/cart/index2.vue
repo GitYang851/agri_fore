@@ -31,7 +31,11 @@
                 class="checkedBox"
                 @change="singleSelect"
               ></el-checkbox>
-              <img :src="getImageUrl(product.image)" class="product-image" alt="" />
+              <img
+                :src="`/dev-api/product/downloadPicture/${product.productId}`"
+                class="product-image"
+                alt=""
+              />
               <div class="product-title">{{ product.productName }}</div>
 
               <div class="product-item-quantity">
@@ -72,7 +76,7 @@
 </template>
 
 <script setup>
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { ref } from 'vue'
 import { getCartItems, getTotal, remove } from '@/api/cart2'
 import { getProduct } from '@/api/product2'
@@ -114,7 +118,6 @@ const buyMany = () => {
     ElMessage.error('请选择要购买的商品')
     return
   }
-
   // 构造符合后端要求的订单项结构
   const orderItems = selectedItems.map((item) => ({
     productId: item.productId, // 确保字段名与后端DTO一致
@@ -126,7 +129,30 @@ const buyMany = () => {
     ElMessage.success('订单创建成功！')
   })
 }
+//删除
+const removeOne = async (product) => {
+  try {
+    await ElMessageBox.confirm(`确定要移除 ${product.productName} 吗？`, '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
 
+    await remove({ productId: product.productId })
+    const index = cartList.value.findIndex((item) => item.productId === product.productId)
+    if (index !== -1) {
+      cartList.value.splice(index, 1)
+      // 更新总金额
+      const res = await getTotal(1)
+      total.value = res.data
+    }
+    ElMessage.success('商品移除成功')
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('移除失败: ' + error.message)
+    }
+  }
+}
 const getImageUrl = (name) => {
   return new URL(`@/assets/goods/${name}.png`, import.meta.url).href
 }
@@ -159,18 +185,6 @@ const singleSelect = () => {
   } else {
     allCheck.value = false
   }
-}
-
-const removeOne = (product) => {
-  let index = cartList.value.indexOf(product)
-  cartList.value.splice(index, 1)
-
-  ElMessage({
-    message: '移出成功',
-    type: 'success',
-    showClose: true,
-    duration: 3000,
-  })
 }
 
 const removeMany = () => {

@@ -1,57 +1,52 @@
 <template>
-  <!-- 添加外层容器限制最大宽度并居中 -->
   <el-container class="container">
     <el-header height="auto" class="header">
-      <!-- 改为自适应高度 -->
       <div class="search-container">
         <el-input
           v-model="searchQuery"
           placeholder="搜索商品..."
           clearable
           class="search-input"
-          @change="filterProducts"
+          @keydown.enter="filterProducts"
         >
           <template #prefix>
-            <el-icon><search /></el-icon>
+            <el-icon><Search /></el-icon>
           </template>
         </el-input>
       </div>
       <div class="category-filter">
-        <!-- 改用element的栅格系统 -->
-        <el-row :gutter="20" class="category-list">
-          <el-col
-            v-for="category in categoryList"
-            :key="category.id"
-            :xs="12"
-            :sm="8"
-            :md="6"
-            :lg="4"
-            class="category-col"
-          >
-            <div class="category-item">
-              <!-- 添加hover效果 -->
-              <span class="category-name" @click="getCategoryById(category.id)">
-                {{ category.name }}
-                <el-icon><arrow-right /></el-icon>
-              </span>
-              <div class="sub-category">
-                <span
-                  v-for="child in category.child"
-                  :key="child.id"
-                  class="sub-category-name"
-                  @click.stop="getCategoryById(child.id)"
-                >
-                  {{ child.name }}
+        <el-scrollbar>
+          <div class="category-scroll">
+            <div
+              v-for="category in categoryList"
+              :key="category.id"
+              class="category-item"
+              @click="getCategoryById(category.id)"
+            >
+              <div class="category-content">
+                <span class="category-name">
+                  {{ category.name }}
+                  <el-icon class="arrow-icon"><ArrowRight /></el-icon>
                 </span>
+                <div class="sub-category">
+                  <span
+                    v-for="child in category.child"
+                    :key="child.id"
+                    class="sub-category-item"
+                    @click.stop="getCategoryById(child.id)"
+                  >
+                    {{ child.name }}
+                  </span>
+                </div>
               </div>
             </div>
-          </el-col>
-        </el-row>
+          </div>
+        </el-scrollbar>
       </div>
     </el-header>
+
     <el-main>
-      <!-- 改用element的栅格系统保持一致性 -->
-      <el-row :gutter="20">
+      <el-row :gutter="20" class="product-list">
         <el-col
           v-for="product in productList"
           :key="product.productId"
@@ -61,18 +56,17 @@
           :lg="6"
         >
           <el-card class="product-card" shadow="hover" @click="toProductDetail(product.productId)">
-            <div class="product-image-wrapper">
-              <!-- 添加加载失败处理 -->
+            <div class="image-wrapper">
               <img
-                :src="getProductImageUrl(product.productId)"
+                :src="`/dev-api/product/downloadPicture/${product.productId}`"
                 class="product-image"
                 alt="商品图片"
               />
             </div>
-            <div class="product-info">
+            <div class="product-content">
               <h3 class="product-title">{{ product.productName }}</h3>
-              <div class="price-section">
-                <span class="product-price">￥{{ product.price }}</span>
+              <div class="product-footer">
+                <span class="price">￥{{ product.price }}</span>
                 <el-tag v-if="product.stock < 10" type="danger" effect="plain" size="small">
                   仅剩{{ product.stock }}件
                 </el-tag>
@@ -81,35 +75,65 @@
           </el-card>
         </el-col>
       </el-row>
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[8, 16, 24]"
+          :background="true"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
     </el-main>
   </el-container>
 </template>
 
 <script setup>
-// 新增图标引入
+// 保持原有 script 代码完全不变
 import { ArrowRight } from '@element-plus/icons-vue'
 import { getCategoryList } from '@/api/category'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { listAllProducts, getProduct } from '@/api/product2'
+import { listAllProducts, getProduct, searchProducts } from '@/api/product2'
 const router = useRouter()
 const categoryList = ref([])
 const productList = ref([])
-
-//下载图片
-const getProductImageUrl = (productId) => {
-  // 添加时间戳参数避免缓存问题
-  return `/product/downloadPicture/${productId}?t=${Date.now()}`
-}
+const currentPage = ref(1)
+const pageSize = ref(8)
+const total = ref(0)
+const searchQuery = ref('')
 const initData = () => {
   categoryList.value = getCategoryList()
 
-  listAllProducts().then((response) => {
-    productList.value = response.data
+  listAllProducts({ pageNum: currentPage.value, pageSize: pageSize.value }).then((response) => {
+    productList.value = response.data.list
+    total.value = response.data.total
   })
 }
 
 initData()
+//搜索
+const filterProducts = () => {
+  searchProducts(searchQuery.value).then((response) => {
+    productList.value = response.data
+  })
+}
+
+//处理分页
+// 修改分页处理方法
+const handleSizeChange = (newSize) => {
+  pageSize.value = newSize
+  currentPage.value = 1 // 切换每页大小时重置到第一页
+  initData()
+}
+
+const handleCurrentChange = (newPage) => {
+  currentPage.value = newPage
+  initData()
+}
 
 const getCategoryById = (id) => {
   router.push({ path: '/category', query: { id: id } })
@@ -118,14 +142,10 @@ const getCategoryById = (id) => {
 const toProductDetail = (id) => {
   router.push({ path: '/product', query: { id: id } })
 }
-
-// 添加图片加载失败处理
-// const handleImageError = (e) => {
-//   e.target.src = require('@/assets/goods/error-image.png')
-// }
 </script>
 
 <style scoped>
+/* 优化后的样式 */
 .container {
   max-width: 1280px;
   margin: 0 auto;
@@ -133,97 +153,118 @@ const toProductDetail = (id) => {
 }
 
 .search-container {
-  width: 100%;
-  max-width: 600px;
-  margin-left: 40px;
+  max-width: 800px;
+  margin: 20px auto;
+  position: relative;
+}
+.pagination-container {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
 }
 
-.search-container .search-input .el-input__wrapper {
-  border-radius: 24px;
-  padding: 0 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.search-input :deep(.el-input__wrapper) {
+  border-radius: 28px;
+  padding: 12px 24px;
+  font-size: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
 }
 
-/* 分类筛选区域优化 */
+.search-input :deep(.el-input__wrapper:hover) {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+}
+
 .category-filter {
-  background: #f8f9fa;
+  margin: 24px 0;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
   border-radius: 12px;
-  padding: 15px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.category-col {
-  margin-bottom: 16px;
+.category-scroll {
+  display: flex;
+  padding: 12px;
+  gap: 16px;
 }
 
 .category-item {
-  background: white;
-  padding: 12px;
-  border-radius: 8px;
-  transition: all 0.3s;
+  flex: 0 0 auto;
+  width: 220px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 16px;
   cursor: pointer;
-  border: 1px solid transparent;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .category-item:hover {
-  border-color: var(--el-color-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
 }
 
 .category-name {
+  font-weight: 600;
+  color: #2c3e50;
   display: flex;
   align-items: center;
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
+  font-size: 15px;
 }
 
-.category-name .el-icon {
+.arrow-icon {
   margin-left: auto;
   transition: transform 0.3s;
 }
 
-.category-item:hover .el-icon {
-  transform: translateX(3px);
-}
-
-.sub-category {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px dashed #eee;
-}
-
-.sub-category-name {
-  display: block;
-  font-size: 12px;
-  padding: 4px 0;
-  color: #666;
-  transition: all 0.2s;
-}
-
-.sub-category-name:hover {
-  color: var(--el-color-primary);
+.category-item:hover .arrow-icon {
   transform: translateX(4px);
 }
 
-/* 商品卡片优化 */
+.sub-category {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sub-category-item {
+  background: rgba(64, 158, 255, 0.1);
+  color: #409eff;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.sub-category-item:hover {
+  background: #409eff;
+  color: white;
+}
+
+.product-list {
+  margin-top: 20px;
+}
+
 .product-card {
-  margin-bottom: 20px;
-  transition: transform 0.3s;
-  border-radius: 12px;
+  border: none !important;
+  border-radius: 16px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
 
 .product-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important;
 }
 
-.product-image-wrapper {
-  width: 100%;
-  height: 0;
-  padding-bottom: 100%; /* 保持正方形比例 */
+.image-wrapper {
   position: relative;
+  width: 100%;
+  padding-bottom: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f5f7fa;
 }
 
 .product-image {
@@ -231,52 +272,64 @@ const toProductDetail = (id) => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 8px;
+  transition: transform 0.3s;
 }
 
-.product-info {
-  padding: 16px 0 0;
+.product-card:hover .product-image {
+  transform: scale(1.03);
+}
+
+.product-content {
+  padding: 16px !important;
 }
 
 .product-title {
-  font-size: 14px;
+  font-size: 15px;
+  color: #2c3e50;
   line-height: 1.4;
-  height: 40px;
-  overflow: hidden;
+  height: 42px;
+  margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.price-section {
+.product-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-top: 12px;
 }
 
-.product-price {
+.price {
   color: #ff4444;
-  font-size: 16px;
-  font-weight: bold;
+  font-size: 18px;
+  font-weight: 700;
 }
 
-/* 移动端适配 */
+.el-tag {
+  border-radius: 6px !important;
+}
+
 @media (max-width: 768px) {
   .container {
-    padding: 10px;
+    padding: 12px;
   }
 
-  .category-filter {
-    padding: 10px;
+  .category-item {
+    width: 180px;
+    padding: 12px;
   }
 
-  .category-name {
-    font-size: 13px;
+  .product-title {
+    font-size: 14px;
+    -webkit-line-clamp: 1;
+    height: auto;
   }
 
-  .sub-category-name {
-    font-size: 12px;
+  .price {
+    font-size: 16px;
   }
 }
 </style>

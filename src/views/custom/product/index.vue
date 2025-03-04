@@ -2,7 +2,13 @@
   <div class="container">
     <div class="header" v-if="product">
       <div class="left">
-        <img v-if="product.image" :src="getImageUrl(product.image)" alt="" />
+        <div class="image-container">
+          <img
+            :src="`/dev-api/product/downloadPicture/${productId}`"
+            alt="商品主图"
+            class="product-main-image"
+          />
+        </div>
       </div>
       <div class="right">
         <div class="title">
@@ -131,8 +137,9 @@ const collection = () => {
 }
 
 .header .left img {
-  width: 600px;
-  height: 600px;
+  flex: 1 1 50%; /* 占据50%空间 */
+  min-width: 400px; /* 最小宽度 */
+  position: relative;
 }
 
 .header .right {

@@ -39,7 +39,7 @@
         <el-table-column prop="image" label="商品图片" width="120">
           <template v-slot="{ row }">
             <div class="image-container">
-              <img :src="getCachedImageUrl(row.productId)" style="width: 100px;" />
+              <img :src="getCachedImageUrl(row.productId)" style="width: 100px" />
             </div>
           </template>
         </el-table-column>
@@ -53,35 +53,69 @@
           <template v-slot="scope">
             <el-button link size="small">查看</el-button>
             <el-button link size="small" @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button v-if="scope.row.status === 20" link size="small" style="color: #e55757"
-              @click="upSeal(scope.$index)">上架
+            <el-button
+              v-if="scope.row.status === 20"
+              link
+              size="small"
+              style="color: #e55757"
+              @click="upSeal(scope.$index)"
+              >上架
             </el-button>
-            <el-button v-if="scope.row.status === 10" link size="small" @click="downSeal(scope.$index)">下架
+            <el-button
+              v-if="scope.row.status === 10"
+              link
+              size="small"
+              @click="downSeal(scope.$index)"
+              >下架
             </el-button>
           </template>
         </el-table-column>
       </el-table>
 
-      <el-pagination background layout="prev, pager, next" :total="total" :current-page="currentPage"
-        :page-size="pageSize" @current-change="handleCurrentChange"></el-pagination>
+      <el-pagination
+        background
+        layout="prev, pager, next"
+        :total="total"
+        :current-page="currentPage"
+        :page-size="pageSize"
+        @current-change="handleCurrentChange"
+      ></el-pagination>
     </div>
 
     <!--  添加商品  -->
     <el-dialog title="添加商品" v-model="dialogFormVisible">
       <el-form :model="newProduct">
         <el-form-item label="商品名">
-          <el-input type="text" minlength="1" maxlength="3" v-model="newProduct.productName"
-            autocomplete="off"></el-input>
+          <el-input
+            type="text"
+            minlength="1"
+            maxlength="3"
+            v-model="newProduct.productName"
+            autocomplete="off"
+          ></el-input>
         </el-form-item>
 
         <el-form-item label="商品价格">
-          <el-input-number v-model="newProduct.price" :precision="2" :step="0.01" :min="0.01" :max="1000000000"
-            autocomplete="off"></el-input-number>
+          <el-input-number
+            v-model="newProduct.price"
+            :precision="2"
+            :step="0.01"
+            :min="0.01"
+            :max="1000000000"
+            autocomplete="off"
+          ></el-input-number>
         </el-form-item>
 
         <el-form-item label="商品图片">
-          <el-upload action="#" list-type="picture-card" :auto-upload="false" accept=".jpg,.png" :multiple="false"
-            :limit="1" @change="handleFileChange">
+          <el-upload
+            action="#"
+            list-type="picture-card"
+            :auto-upload="false"
+            accept=".jpg,.png"
+            :multiple="false"
+            :limit="1"
+            @change="handleFileChange"
+          >
             <i class="el-icon-plus"></i>
           </el-upload>
           <el-dialog>
@@ -90,13 +124,24 @@
         </el-form-item>
 
         <el-form-item label="商品库存">
-          <el-input-number v-model="newProduct.stock" :precision="0" :step="1" :min="1" :max="100000"
-            autocomplete="off"></el-input-number>
+          <el-input-number
+            v-model="newProduct.stock"
+            :precision="0"
+            :step="1"
+            :min="1"
+            :max="100000"
+            autocomplete="off"
+          ></el-input-number>
         </el-form-item>
 
         <el-form-item label="商品描述">
-          <el-input type="textarea" minlength="1" maxlength="150" v-model="newProduct.description"
-            autocomplete="off"></el-input>
+          <el-input
+            type="textarea"
+            minlength="1"
+            maxlength="150"
+            v-model="newProduct.description"
+            autocomplete="off"
+          ></el-input>
         </el-form-item>
       </el-form>
 
@@ -116,12 +161,24 @@
         </el-form-item>
 
         <el-form-item label="商品价格">
-          <el-input-number v-model="editProduct.price" :precision="2" :step="0.01" :min="0.01"></el-input-number>
+          <el-input-number
+            v-model="editProduct.price"
+            :precision="2"
+            :step="0.01"
+            :min="0.01"
+          ></el-input-number>
         </el-form-item>
 
         <el-form-item label="商品图片">
-          <el-upload action="#" list-type="picture-card" :auto-upload="false" accept=".jpg,.png" :multiple="false"
-            :limit="1" @change="handleFileChange">
+          <el-upload
+            action="#"
+            list-type="picture-card"
+            :auto-upload="false"
+            accept=".jpg,.png"
+            :multiple="false"
+            :limit="1"
+            @change="handleFileChange"
+          >
             <i class="el-icon-plus"></i>
           </el-upload>
           <el-dialog>
@@ -149,9 +206,15 @@
 </template>
 
 <script setup>
-import { ref,computed,reactive   } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
-import { listAllProducts, addproduct, searchProducts, uploadPicture, editProductById } from '@/api/product2'
+import {
+  listAllProduct,
+  addproduct,
+  searchProducts,
+  uploadPicture,
+  editProductById,
+} from '@/api/product2'
 
 const default_nav = ref('30')
 const dialogFormVisible = ref(false)
@@ -188,13 +251,11 @@ const handleCurrentChange = (newPage) => {
 const selectedFile = ref(null) // 保存选中的文件
 
 const handleFileChange = (file) => {
-
   selectedFile.value = file.raw // 保存选中的文件
 }
 
-
 const initData = () => {
-  listAllProducts().then((response) => {
+  listAllProduct().then((response) => {
     productList.value = response.data
   })
 }
@@ -250,7 +311,6 @@ const downSeal = (index) => {
   productList.value[index].status = 20
 }
 
-
 const submitEditForm = async () => {
   editProductById(editProduct.value).then((response) => {
     if (response.code === 200) {
@@ -275,7 +335,6 @@ const submitEditForm = async () => {
     }
     selectedFile = ref(null)
   })
-
 }
 
 //添加商品
