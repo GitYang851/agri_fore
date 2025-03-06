@@ -36,6 +36,14 @@ export function searchProducts(tquery) {
     headers: { token: localStorage.getItem('token') },
   })
 }
+//获取推荐
+export function getRecommend() {
+  return request({
+    url: '/product/getRecommandation',
+    method: 'get',
+    headers: { token: localStorage.getItem('token') },
+  })
+}
 
 // 收藏商品
 export function collectProduct(id) {

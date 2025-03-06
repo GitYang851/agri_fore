@@ -24,11 +24,11 @@
       <div class="right">
         <el-dropdown @command="handleCommand">
           <div class="el-dropdown-link nickname">
-            <div style="line-height: 25px" v-if="!userinfo" width="50px">
+            <div style="line-height: 25px" width="50px">
               <el-icon class="el-icon--right">
                 <setting />
               </el-icon>
-              <span>昵称</span>
+              <span>{{ userinfo }}</span>
             </div>
             <div style="line-height: 50px" v-if="userinfo">
               {{ userinfo.username }}
@@ -112,10 +112,40 @@ const pwdForm = ref({
   password: '',
   confirmPwd: '',
 })
+//从token获取账号信息
+
 const userinfo = ref({})
 
+// 解析 JWT 的工具函数
+const parseJwt = (token) => {
+  try {
+    // 分割 token 的 payload 部分
+    const base64Url = token.split('.')[1]
+    // 替换 URL 安全字符并补全 base64
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    // 解码并转 UTF-8
+    const payload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join(''),
+    )
+    return JSON.parse(payload)
+  } catch (error) {
+    console.error('token 解析失败:', error)
+    return null
+  }
+}
+
 const initData = () => {
-  userinfo.value = store.state.home.userinfo
+  const token = localStorage.getItem('token')
+  if (token) {
+    const payload = parseJwt(token)
+
+    if (payload?.account) {
+      userinfo.value = payload.account
+    }
+  }
 }
 initData()
 

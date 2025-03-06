@@ -56,13 +56,21 @@
             :md="8"
             :lg="6"
           >
-            <el-card shadow="hover" class="product-card" @click="toProductDetail(product.id)">
+            <el-card
+              shadow="hover"
+              class="product-card"
+              @click="toProductDetail(product.productId)"
+            >
               <div class="image-wrapper">
-                <img :src="getImageUrl('product.image')" class="product-image" alt="商品图片" />
+                <img
+                  :src="`/dev-api/product/downloadPicture/${product.productId}`"
+                  class="product-image"
+                  alt="商品图片"
+                />
                 <div class="hot-tag">热卖</div>
               </div>
               <div class="product-info">
-                <h3 class="product-title">{{ product.title }}</h3>
+                <h3 class="product-title">{{ product.productName }}</h3>
                 <div class="price-section">
                   <span class="price-symbol">¥</span>
                   <span class="product-price">{{ product.price }}</span>
@@ -82,7 +90,7 @@
 <script setup>
 // 原有脚本部分保持不变，仅添加图标引入
 import { ArrowRight, Search } from '@element-plus/icons-vue'
-
+import { getRecommend } from '@/api/product2'
 import { getProductList, getWarpList } from '@/api/home'
 import { getCategoryList } from '@/api/category'
 import { ref } from 'vue'
@@ -95,16 +103,9 @@ const categoryList = ref([])
 const initData = () => {
   warpList.value = getWarpList()
   categoryList.value = getCategoryList()
-  let list = getProductList()
-  list.forEach((item) => {
-    if (item.status === 10) {
-      productList.value.push(item)
-    }
+  getRecommend().then((response) => {
+    productList.value = response.data
   })
-}
-
-const getImageUrl = (name) => {
-  return new URL(`@/assets/goods/${name}.png`, import.meta.url).href
 }
 
 const carouselList = ref([
