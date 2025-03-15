@@ -33,3 +33,10 @@ export function selectOrderByStatus(status) {
     headers: { token: localStorage.getItem('token') },
   })
 }
+export function getorderitem(orderid) {
+  return request({
+    url: '/order/orderitem',
+    method: 'get',
+    params: orderid,
+  })
+}

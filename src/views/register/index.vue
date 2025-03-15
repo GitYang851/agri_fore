@@ -3,7 +3,7 @@
     <div class="header">
       <div class="left">
         <a href="/">
-          <img class="logo" src="@/assets/logo.png" alt="logo" />
+          <img class="logo" src="@/assets/logo.jpg" alt="logo" />
         </a>
       </div>
     </div>
@@ -111,9 +111,14 @@ a {
 }
 
 .logo {
-  vertical-align: middle;
-  width: 30px;
-  height: 30px;
-  margin: 0 10px 0 40px;
+  display: block;
+  width: 50px; /* 统一宽高确保正圆 */
+  height: 50px;
+  border-radius: 50%; /* 圆形裁剪 */
+  object-fit: cover; /* 保持图片比例 */
+  /* 移除默认背景 */
+  background-color: transparent;
+  /* 可选：添加轻微阴影提升层次感 */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 </style>

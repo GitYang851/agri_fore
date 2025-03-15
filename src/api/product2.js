@@ -55,6 +55,25 @@ export function collectProduct(id) {
     },
   })
 }
+export function getcollectdata() {
+  return request({
+    url: 'product/collectdata',
+    method: 'get',
+    headers: {
+      token: localStorage.getItem('token'),
+    },
+  })
+}
+export function removecollect(productId) {
+  return request({
+    url: 'product/removecollect',
+    method: 'delete',
+    params: productId,
+    headers: {
+      token: localStorage.getItem('token'),
+    },
+  })
+}
 
 export function addproduct(data) {
   return request({

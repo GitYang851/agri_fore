@@ -1,11 +1,9 @@
 <template>
-  <div class="footer">网站由xxxxxxxx制作</div>
+  <div class="footer">
+    <h3>基于知识图谱的农产品推荐系统</h3>
+  </div>
 </template>
 
-<script>
+<script></script>
 
-</script>
-
-<style scoped>
-
-</style>
+<style scoped></style>

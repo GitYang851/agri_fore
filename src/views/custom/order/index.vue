@@ -121,7 +121,7 @@
 import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Delete } from '@element-plus/icons-vue'
-import { listAllOrder, selectOrderByStatus, makePayment } from '@/api/order2'
+import { listAllOrder, selectOrderByStatus, makePayment, getorderitem } from '@/api/order2'
 const orderList = ref([])
 const default_nav_select = ref('10')
 

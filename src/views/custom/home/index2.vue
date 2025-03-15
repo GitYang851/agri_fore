@@ -46,7 +46,7 @@
             <div class="carousel-caption">{{ item.caption }}</div>
           </el-carousel-item>
         </el-carousel>
-        <span>用来展示推荐结果的</span>
+        <h2>猜你喜欢</h2>
         <el-row :gutter="24">
           <el-col
             v-for="product in productList"
