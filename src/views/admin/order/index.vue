@@ -1,118 +1,172 @@
 <template>
-  <div class="container">
-    <div class="admin-header">
-      <div class="admin-nav">
-        <el-tabs v-model="default_nav" @tab-click="changeTab">
-          <el-tab-pane label="订单列表" name="80">订单列表</el-tab-pane>
-          <el-tab-pane label="待支付" name="20">待支付</el-tab-pane>
-          <el-tab-pane label="待发货" name="30">待发货</el-tab-pane>
-          <el-tab-pane label="待收货" name="40">待收货</el-tab-pane>
-          <el-tab-pane label="交易完成" name="50">交易完成</el-tab-pane>
-        </el-tabs>
+  <div class="order-management">
+    <!-- 头部操作区 -->
+    <div class="operation-header">
+      <!-- 状态导航 -->
+      <div class="status-nav">
+        <el-radio-group 
+          v-model="default_nav" 
+          @change="changeTab"
+          class="status-group"
+        >
+          <el-radio-button label="80">全部订单</el-radio-button>
+          <el-radio-button label="20">待支付</el-radio-button>
+          <el-radio-button label="30">待发货</el-radio-button>
+          <el-radio-button label="40">待收货</el-radio-button>
+          <el-radio-button label="50">交易完成</el-radio-button>
+        </el-radio-group>
       </div>
 
-      <div class="admin-search">
-        <el-form :inline="true" ref="search" :model="search" class="demo-form-inline">
-          <el-form-item prop="username">
-            <el-input v-model="search.username" placeholder="订单号" clearable></el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="toSearch">查询</el-button>
-          </el-form-item>
-        </el-form>
+      <!-- 搜索区域 -->
+      <div class="search-area">
+        <el-input
+          v-model="search.orderNo"
+          placeholder="输入订单号搜索"
+          clearable
+          class="search-input"
+          @keyup.enter="toSearch"
+        >
+          <template #prefix>
+            <el-icon class="search-icon"><Search /></el-icon>
+          </template>
+        </el-input>
+        <el-button 
+          type="primary" 
+          class="search-btn"
+          @click="toSearch"
+        >
+          查询
+        </el-button>
       </div>
     </div>
 
-    <div class="admin-content">
+    <!-- 数据表格 -->
+    <div class="data-container">
       <el-table
-          :data="orderList"
-          border
-          style="width: 100%">
-
+        :data="orderList"
+        border
+        stripe
+        highlight-current-row
+        class="data-table"
+      >
         <el-table-column
-            fixed
-            prop="index"
-            label="序号"
-            width="80">
-          <template v-slot="scope">
-            <span>{{ scope.$index + 1 }}</span>
+          label="序号"
+          width="80"
+          align="center"
+        >
+          <template #default="{ $index }">
+            <span class="index-number">{{ $index + 1 }}</span>
           </template>
         </el-table-column>
 
         <el-table-column
-            prop="orderNo"
-            label="订单号"
-            show-overflow-tooltip
-            width="200">
+          prop="orderNo"
+          label="订单号"
+          min-width="180"
+          show-overflow-tooltip
+        />
+
+        <el-table-column
+          prop="price"
+          label="商品单价"
+          width="120"
+          align="center"
+        >
+          <template #default="{ row }">
+            <span class="price">¥{{ row.price }}</span>
+          </template>
         </el-table-column>
 
         <el-table-column
-            prop="price"
-            label="商品单价"
-            width="150">
-        </el-table-column>
-
-        <el-table-column
-            prop="image"
-            label="商品图片"
-            width="150">
-          <template v-slot="scope">
-            <el-popover placement="top-start" title="" trigger="hover">
-              <img :src="require('@/assets/goods/'+scope.row.image)" style="width: 250px;height: 250px;" alt=""/>
-              <template #reference>
-                <img :src="require('@/assets/goods/'+scope.row.image)"
-                     style="width: 50px;height: 50px;"/>
+          label="商品图片"
+          width="120"
+          align="center"
+        >
+          <template #default="{ row }">
+            <el-image 
+              :src="require('@/assets/goods/'+row.image)"
+              :preview-src-list="[require('@/assets/goods/'+row.image)]"
+              fit="cover"
+              class="product-image"
+            >
+              <template #error>
+                <div class="image-error">
+                  <el-icon><Picture /></el-icon>
+                </div>
               </template>
-            </el-popover>
+            </el-image>
           </template>
         </el-table-column>
 
         <el-table-column
-            prop="quantity"
-            label="商品数量"
-            width="150">
+          prop="quantity"
+          label="数量"
+          width="100"
+          align="center"
+        />
+
+        <el-table-column
+          prop="amount"
+          label="总金额"
+          width="150"
+          align="center"
+        >
+          <template #default="{ row }">
+            <span class="total-amount">¥{{ row.amount }}</span>
+          </template>
         </el-table-column>
 
         <el-table-column
-            prop="amount"
-            label="订单总价"
-            show-overflow-tooltip
-            width="200">
-        </el-table-column>
+          prop="createTime"
+          label="下单时间"
+          width="180"
+        />
 
         <el-table-column
-            prop="createTime"
-            label="交易时间"
-            show-overflow-tooltip
-            width="200">
-        </el-table-column>
+          prop="updateTime"
+          label="状态更新时间"
+          width="180"
+        />
 
         <el-table-column
-            prop="updateTime"
-            label="订单状态变更时间"
-            show-overflow-tooltip
-            width="200">
-        </el-table-column>
-
-        <el-table-column
-            fixed="right"
-            label="操作"
-            width="200">
-          <template v-slot="scope">
-            <el-button link  size="small">查看</el-button>
-            <el-button v-if="scope.row.status === 30" link  size="small" @click="sendProduct(scope.$index)">发货
-            </el-button>
+          label="操作"
+          width="180"
+          fixed="right"
+        >
+          <template #default="{ row, $index }">
+            <div class="action-btns">
+              <el-button 
+                type="primary" 
+                link
+                class="view-btn"
+              >
+                详情
+              </el-button>
+              <el-button
+                v-if="row.status === 30"
+                type="success"
+                link
+                class="send-btn"
+                @click="sendProduct($index)"
+              >
+                发货
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
 
-      <el-pagination
+      <!-- 分页 -->
+      <div class="pagination-wrapper">
+        <el-pagination
           background
-          layout="prev, pager, next"
-          :total="1000">
-      </el-pagination>
+          layout="prev, pager, next, total"
+          :total="1000"
+          :page-size="10"
+          class="smart-pagination"
+        />
+      </div>
     </div>
-
   </div>
 </template>
 
@@ -164,35 +218,203 @@ const sendProduct = (index) => {
 
 </script>
 
-<style scoped>
-.admin-header {
+<style lang="scss" scoped>
+.order-management {
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.operation-header {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 24px;
 }
 
-.admin-nav {
-  border: 1px solid #666666;
-  padding: 20px;
-  border-radius: 10px;
-  width: 450px;
-  margin-right: 20px;
+.status-nav {
+  flex: 1;
+  
+  :deep(.el-radio-group) {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .el-radio-button {
+    --el-radio-button-checked-bg-color: #{rgba(76, 175, 80, 0.1)};
+    --el-radio-button-checked-text-color: #4caf50;
+    --el-radio-button-checked-border-color: #4caf50;
+    
+    .el-radio-button__inner {
+      border-radius: 6px !important;
+      padding: 8px 20px;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        color: #4caf50;
+      }
+    }
+  }
 }
 
-.admin-search {
-  border: 1px solid #666666;
-  padding: 20px;
-  border-radius: 10px;
+.search-area {
+  display: flex;
+  gap: 12px;
   width: 400px;
+
+  .search-input {
+    flex: 1;
+    
+    :deep(.el-input__inner) {
+      border-radius: 6px;
+      padding-left: 34px;
+    }
+    
+    .search-icon {
+      color: #999;
+      margin-left: 8px;
+    }
+  }
+  
+  .search-btn {
+    border-radius: 6px;
+    padding: 10px 24px;
+    background: linear-gradient(45deg, #4caf50, #81c784);
+    border: none;
+    transition: all 0.3s;
+    
+    &:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+  }
 }
 
-.admin-content {
-  margin-top: 20px;
-  border: 1px solid #666666;
-  padding: 20px;
-  border-radius: 10px;
-  width: 1580px;
+.data-container {
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.el-pagination {
-  margin: 20px;
+.data-table {
+  width: 100%;
+  
+  :deep(th) {
+    background: #f8fafc !important;
+    color: #333;
+    font-weight: 600;
+  }
+  
+  .index-number {
+    color: #666;
+    font-weight: 500;
+  }
+  
+  .price {
+    color: #e6a23c;
+    font-weight: 500;
+  }
+  
+  .total-amount {
+    color: #4caf50;
+    font-weight: 600;
+  }
+  
+  .product-image {
+    width: 50px;
+    height: 50px;
+    border-radius: 4px;
+    transition: transform 0.3s;
+    
+    &:hover {
+      transform: scale(1.8);
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  .action-btns {
+    display: flex;
+    gap: 12px;
+    
+    .view-btn {
+      color: #4caf50 !important;
+    }
+    
+    .send-btn {
+      color: #67c23a !important;
+    }
+  }
+}
+
+.pagination-wrapper {
+  padding: 16px;
+  background: #f8fafc;
+  
+  .smart-pagination {
+    justify-content: flex-end;
+    
+    :deep(.btn-prev),
+    :deep(.btn-next) {
+      border-radius: 6px;
+    }
+    
+    :deep(.number) {
+      border-radius: 6px;
+      transition: all 0.3s;
+      
+      &:hover {
+        color: #4caf50;
+      }
+    }
+    
+    :deep(.active) {
+      background: #4caf50 !important;
+      border-color: #4caf50;
+    }
+  }
+}
+
+@media (max-width: 1200px) {
+  .operation-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-area {
+    width: 100%;
+  }
+  
+  .data-table {
+    overflow-x: auto;
+    
+    :deep(.el-table__body-wrapper) {
+      min-width: 1200px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .order-management {
+    padding: 16px;
+  }
+  
+  .status-nav {
+    :deep(.el-radio-button) {
+      flex: 1;
+      
+      .el-radio-button__inner {
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+    }
+  }
+  
+  .search-btn {
+    padding: 10px 16px !important;
+  }
 }
 </style>
+

@@ -1,155 +1,145 @@
 <template>
-  <div class="container">
-    <div class="admin-header">
-      <div class="admin-nav">
-        <el-tabs v-model="default_nav" @tab-click="changeTab">
-          <el-tab-pane label="商品列表" name="30">商品列表</el-tab-pane>
-          <el-tab-pane label="下架商品" name="10">下架商品</el-tab-pane>
-          <el-tab-pane label="上架商品" name="20">上架商品</el-tab-pane>
-        </el-tabs>
+  <div class="product-management">
+    <!-- 操作头部 -->
+    <div class="operation-header">
+      <!-- 状态导航 -->
+      <div class="status-nav">
+        <el-radio-group v-model="default_nav" @change="changeTab" class="status-group">
+          <el-radio-button label="30">全部商品</el-radio-button>
+          <el-radio-button label="10">已下架</el-radio-button>
+          <el-radio-button label="20">已上架</el-radio-button>
+        </el-radio-group>
       </div>
-      <div class="admin-options">
-        <el-button @click="dialogFormVisible = true">添加商品</el-button>
-      </div>
-      <div class="admin-search">
-        <el-form :inline="true" class="demo-form-inline">
-          <el-form-item>
-            <el-input v-model="search" placeholder="商品名" clearable @input="toSearch"></el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="toSearch">查询</el-button>
-          </el-form-item>
-        </el-form>
+
+      <!-- 操作按钮 -->
+      <el-button type="primary" class="add-btn" @click="dialogFormVisible = true">
+        <el-icon class="mr-1">
+          <Plus />
+        </el-icon>
+        新增商品
+      </el-button>
+
+      <!-- 搜索区域 -->
+      <div class="search-area">
+        <el-input v-model="search" placeholder="搜索商品名称" clearable class="search-input" @keyup.enter="toSearch">
+          <template #prefix>
+            <el-icon class="search-icon">
+              <Search />
+            </el-icon>
+          </template>
+        </el-input>
+        <el-button type="primary" class="search-btn" @click="toSearch">
+          查询
+        </el-button>
       </div>
     </div>
 
-    <div class="admin-content">
-      <el-table :data="paginatedProductList" border style="width: 100%">
-        <el-table-column fixed prop="index" label="序号" width="50">
-          <template v-slot="scope">
-            <span>{{ scope.$index + 1 }}</span>
+    <!-- 数据表格 -->
+    <div class="data-container">
+      <el-table :data="paginatedProductList" border stripe highlight-current-row class="data-table">
+        <el-table-column label="序号" width="80" align="center">
+          <template #default="{ $index }">
+            <span class="index-number">{{ $index + 1 }}</span>
           </template>
         </el-table-column>
 
-        <el-table-column prop="productName" label="商品名" show-overflow-tooltip width="150">
+        <el-table-column prop="productName" label="商品名称" min-width="180" show-overflow-tooltip />
+
+        <el-table-column label="价格" width="120" align="center">
+          <template #default="{ row }">
+            <span class="price">¥{{ row.price.toFixed(2) }}</span>
+          </template>
         </el-table-column>
 
-        <el-table-column prop="price" label="商品价格" width="120"> </el-table-column>
-
-        <el-table-column prop="image" label="商品图片" width="120">
-          <template v-slot="{ row }">
-            <div class="image-container">
-              <img :src="getCachedImageUrl(row.productId)" style="width: 100px" />
+        <el-table-column label="商品图片" width="140" align="center">
+          <template #default="{ row }">
+            <div class="image-wrapper">
+              <el-image :src="getCachedImageUrl(row.productId)" :preview-src-list="[getCachedImageUrl(row.productId)]"
+                fit="cover" class="product-image">
+                <template #error>
+                  <div class="image-error">
+                    <el-icon>
+                      <Picture />
+                    </el-icon>
+                  </div>
+                </template>
+              </el-image>
             </div>
           </template>
         </el-table-column>
 
-        <el-table-column prop="stock" label="商品库存" width="120"> </el-table-column>
+        <el-table-column prop="stock" label="库存" width="100" align="center" />
 
-        <el-table-column prop="description" label="描述" show-overflow-tooltip width="200">
-        </el-table-column>
+        <el-table-column prop="description" label="商品描述" min-width="200" show-overflow-tooltip />
 
-        <el-table-column fixed="right" label="操作" width="200">
-          <template v-slot="scope">
-            <el-button link size="small">查看</el-button>
-            <el-button link size="small" @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button
-              v-if="scope.row.status === 20"
-              link
-              size="small"
-              style="color: #e55757"
-              @click="upSeal(scope.$index)"
-              >上架
-            </el-button>
-            <el-button
-              v-if="scope.row.status === 10"
-              link
-              size="small"
-              @click="downSeal(scope.$index)"
-              >下架
-            </el-button>
+        <el-table-column label="操作" width="220" fixed="right">
+          <template #default="{ row, $index }">
+            <div class="action-btns">
+              <el-button type="primary" link class="view-btn" @click="handleEdit(row)">
+                编辑
+              </el-button>
+              <el-button v-if="row.status === 20" type="danger" link class="down-btn" @click="downSeal($index)">
+                下架
+              </el-button>
+              <el-button v-if="row.status === 10" type="success" link class="up-btn" @click="upSeal($index)">
+                上架
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
 
-      <el-pagination
-        background
-        layout="prev, pager, next"
-        :total="total"
-        :current-page="currentPage"
-        :page-size="pageSize"
-        @current-change="handleCurrentChange"
-      ></el-pagination>
+      <!-- 分页 -->
+      <div class="pagination-wrapper">
+        <el-pagination background layout="prev, pager, next, total" :total="total" :page-size="pageSize"
+          :current-page="currentPage" @current-change="handleCurrentChange" class="smart-pagination" />
+      </div>
     </div>
 
-    <!--  添加商品  -->
-    <el-dialog title="添加商品" v-model="dialogFormVisible">
-      <el-form :model="newProduct">
-        <el-form-item label="商品名">
-          <el-input
-            type="text"
-            minlength="1"
-            maxlength="3"
-            v-model="newProduct.productName"
-            autocomplete="off"
-          ></el-input>
-        </el-form-item>
+    <!-- 新增商品弹窗 -->
+    <el-dialog v-model="dialogFormVisible" title="新增商品" width="800px" class="product-dialog">
+      <el-form :model="newProduct" label-width="100px">
+        <el-row :gutter="24">
+          <el-col :span="12">
+            <el-form-item label="商品名称">
+              <el-input v-model="newProduct.productName" placeholder="请输入商品名称" clearable />
+            </el-form-item>
 
-        <el-form-item label="商品价格">
-          <el-input-number
-            v-model="newProduct.price"
-            :precision="2"
-            :step="0.01"
-            :min="0.01"
-            :max="1000000000"
-            autocomplete="off"
-          ></el-input-number>
-        </el-form-item>
+            <el-form-item label="商品价格">
+              <el-input-number v-model="newProduct.price" :precision="2" :min="0.01" :max="10000"
+                controls-position="right" class="full-width" />
+            </el-form-item>
 
-        <el-form-item label="商品图片">
-          <el-upload
-            action="#"
-            list-type="picture-card"
-            :auto-upload="false"
-            accept=".jpg,.png"
-            :multiple="false"
-            :limit="1"
-            @change="handleFileChange"
-          >
-            <i class="el-icon-plus"></i>
-          </el-upload>
-          <el-dialog>
-            <img width="100%" :src="dialogImageUrl" alt="" />
-          </el-dialog>
-        </el-form-item>
+            <el-form-item label="商品库存">
+              <el-input-number v-model="newProduct.stock" :min="1" :max="100000" controls-position="right"
+                class="full-width" />
+            </el-form-item>
+          </el-col>
 
-        <el-form-item label="商品库存">
-          <el-input-number
-            v-model="newProduct.stock"
-            :precision="0"
-            :step="1"
-            :min="1"
-            :max="100000"
-            autocomplete="off"
-          ></el-input-number>
-        </el-form-item>
+          <el-col :span="12">
+            <el-form-item label="商品图片">
+              <el-upload action="#" list-type="picture-card" :auto-upload="false" :limit="1"
+                :on-change="handleFileChange" class="image-uploader">
+                <el-icon class="upload-icon">
+                  <Plus />
+                </el-icon>
+                <template #file="{ file }">
+                  <img :src="file.url" class="upload-image" />
+                </template>
+              </el-upload>
+            </el-form-item>
+          </el-col>
+        </el-row>
 
         <el-form-item label="商品描述">
-          <el-input
-            type="textarea"
-            minlength="1"
-            maxlength="150"
-            v-model="newProduct.description"
-            autocomplete="off"
-          ></el-input>
+          <el-input v-model="newProduct.description" type="textarea" :rows="4" placeholder="请输入商品详细描述" maxlength="150"
+            show-word-limit />
         </el-form-item>
       </el-form>
 
       <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogFormVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitForm"> 确定 </el-button>
-        </span>
+        <el-button @click="dialogFormVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitForm">确认添加</el-button>
       </template>
     </el-dialog>
 
@@ -161,24 +151,12 @@
         </el-form-item>
 
         <el-form-item label="商品价格">
-          <el-input-number
-            v-model="editProduct.price"
-            :precision="2"
-            :step="0.01"
-            :min="0.01"
-          ></el-input-number>
+          <el-input-number v-model="editProduct.price" :precision="2" :step="0.01" :min="0.01"></el-input-number>
         </el-form-item>
 
         <el-form-item label="商品图片">
-          <el-upload
-            action="#"
-            list-type="picture-card"
-            :auto-upload="false"
-            accept=".jpg,.png"
-            :multiple="false"
-            :limit="1"
-            @change="handleFileChange"
-          >
+          <el-upload action="#" list-type="picture-card" :auto-upload="false" accept=".jpg,.png" :multiple="false"
+            :limit="1" @change="handleFileChange">
             <i class="el-icon-plus"></i>
           </el-upload>
           <el-dialog>
@@ -383,44 +361,244 @@ const handleEdit = (row) => {
   editDialogVisible.value = true
 }
 </script>
+<style lang="scss" scoped>
+.product-management {
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
 
-<style scoped>
-.admin-header {
+.operation-header {
   display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
-.admin-nav {
-  border: 1px solid #666666;
-  padding: 20px;
-  border-radius: 10px;
-  width: 400px;
-  margin-right: 20px;
+.status-nav {
+  flex: 1;
+  min-width: 400px;
+
+  :deep(.el-radio-group) {
+    display: flex;
+    gap: 8px;
+  }
+
+  .el-radio-button {
+    --el-radio-button-checked-bg-color: #{rgba(76, 175, 80, 0.1)};
+    --el-radio-button-checked-text-color: #4caf50;
+    --el-radio-button-checked-border-color: #4caf50;
+
+    .el-radio-button__inner {
+      border-radius: 6px !important;
+      padding: 8px 20px;
+      transition: all 0.3s ease;
+    }
+  }
 }
 
-.admin-options {
-  border: 1px solid #666666;
-  padding: 20px;
-  border-radius: 10px;
-  width: 200px;
-  margin-right: 20px;
+.add-btn {
+  background: linear-gradient(45deg, #4caf50, #81c784);
+  border: none;
+  padding: 10px 24px;
+  transition: all 0.3s;
+
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
 }
 
-.admin-search {
-  border: 1px solid #666666;
-  padding: 20px;
-  border-radius: 10px;
-  width: 400px;
+.search-area {
+  display: flex;
+  gap: 12px;
+  min-width: 400px;
+  flex: 1;
+
+  .search-input {
+    flex: 1;
+
+    :deep(.el-input__inner) {
+      border-radius: 6px;
+      padding-left: 34px;
+    }
+  }
+
+  .search-btn {
+    background: linear-gradient(45deg, #4caf50, #81c784);
+    border: none;
+    padding: 10px 24px;
+  }
 }
 
-.admin-content {
-  margin-top: 20px;
-  border: 1px solid #666666;
-  padding: 20px;
-  border-radius: 10px;
-  width: 1580px;
+.data-container {
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.el-pagination {
-  margin: 20px;
+.data-table {
+  :deep {
+    th {
+      background: #f8fafc !important;
+      font-weight: 600;
+      padding: 16px 0;
+    }
+
+    td {
+      padding: 12px 0;
+      vertical-align: middle;
+    }
+
+    .el-table__cell {
+
+      // 图片列特殊样式
+      &:nth-child(4) {
+        padding: 16px 0;
+        min-width: 140px;
+      }
+    }
+  }
+
+  .price {
+    color: #e6a23c;
+    font-weight: 500;
+  }
+
+  .product-image {
+    width: 80px;
+    height: 80px;
+    margin: 8px auto;
+    display: block;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+    &:hover {
+      transform: scale(2);
+      margin: 20px auto;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  .action-btns {
+    display: flex;
+    gap: 8px;
+    flex-wrap: nowrap;
+
+    .view-btn {
+      color: #4caf50;
+    }
+
+    .up-btn {
+      color: #67c23a;
+    }
+
+    .down-btn {
+      color: #f56c6c;
+    }
+  }
+}
+
+.pagination-wrapper {
+  padding: 16px;
+  background: #f8fafc;
+
+  .smart-pagination {
+    :deep(.active) {
+      background: #4caf50 !important;
+    }
+  }
+}
+
+.product-dialog {
+  :deep(.el-dialog__body) {
+    padding: 24px;
+
+    .image-uploader {
+      .el-upload {
+        border: 2px dashed #dcdfe6;
+        border-radius: 8px;
+        transition: all 0.3s;
+
+        &:hover {
+          border-color: #4caf50;
+        }
+      }
+
+      .upload-icon {
+        font-size: 24px;
+        color: #666;
+      }
+
+      .upload-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+  }
+}
+
+// 图片预览优化
+:deep(.el-image-viewer__wrapper) {
+  .el-image-viewer__mask {
+    background: rgba(0, 0, 0, 0.85);
+  }
+
+  .el-image-viewer__btn {
+    color: #fff;
+  }
+
+  img {
+    max-width: 70vw;
+    max-height: 80vh;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  }
+}
+
+@media (max-width: 768px) {
+  .operation-header {
+    gap: 16px;
+  }
+
+  .status-nav,
+  .search-area {
+    min-width: 100%;
+  }
+
+  .data-table {
+    :deep(.el-table__body-wrapper) {
+      overflow-x: auto;
+
+      .el-table__cell {
+        &:nth-child(4) {
+          // 图片列
+          min-width: 120px;
+          padding: 12px 0;
+        }
+      }
+    }
+
+    .product-image {
+      width: 60px;
+      height: 60px;
+
+      &:hover {
+        transform: scale(1.8);
+        margin: 15px auto;
+      }
+    }
+  }
+
+  .product-dialog {
+    :deep(.el-dialog) {
+      width: 90% !important;
+    }
+  }
 }
 </style>

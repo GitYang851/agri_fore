@@ -1,85 +1,104 @@
 <template>
-  <div class="header">
-    <div class="container">
-      <div class="left">
-        <a href="/">
-          <img class="logo" src="@/assets/logo.jpg" width="30px" alt="logo" />
-        </a>
+  <div class="admin-header">
+    <div class="header-container">
+      <!-- 左侧Logo -->
+      <div class="header-left">
+        <router-link to="/" class="logo-link">
+          <img class="header-logo" src="@/assets/logo.jpg" alt="系统Logo" />
+        </router-link>
       </div>
 
-      <div class="middle">
-        <span class="nav-span" :class="{ active: $route.path === '/' }"
-          ><router-link class="nav-link" to="/">商城管理</router-link></span
+      <!-- 导航菜单 -->
+      <div class="header-nav">
+        <router-link 
+          to="/" 
+          class="nav-item"
+          :class="{ 'nav-active': $route.path === '/' }"
         >
+          商城管理
+        </router-link>
       </div>
 
-      <div class="right">
-        <el-dropdown @command="handleCommand">
-          <div class="el-dropdown-link nickname">
-            <div style="line-height: 50px" v-if="!userinfo">
-              昵称
-              <el-icon class="el-icon--right">
-                <arrow-down />
-              </el-icon>
-            </div>
-
-            <div style="line-height: 50px" v-if="userinfo">
-              {{ userinfo.username }}
-              <el-icon class="el-icon--right">
-                <arrow-down />
-              </el-icon>
-            </div>
+      <!-- 右侧用户操作 -->
+      <div class="header-actions">
+        <el-dropdown 
+          trigger="hover"
+          @command="handleCommand"
+          class="user-dropdown"
+        >
+          <div class="user-info">
+            <span class="user-name">{{ userinfo?.username || '管理员' }}</span>
+            <el-icon class="dropdown-icon"><arrow-down /></el-icon>
           </div>
+          
           <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item command="updatePwd">修改密码</el-dropdown-item>
-              <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+            <el-dropdown-menu class="dropdown-menu">
+              <el-dropdown-item command="updatePwd" class="menu-item">
+                <el-icon><edit /></el-icon>
+                <span>修改密码</span>
+              </el-dropdown-item>
+              <el-dropdown-item command="logout" class="menu-item">
+                <el-icon><switch-button /></el-icon>
+                <span>退出登录</span>
+              </el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
       </div>
     </div>
 
-    <el-dialog title="修改密码" v-model="dialogFormVisible" width="500px">
+    <!-- 修改密码弹窗 -->
+    <el-dialog 
+      v-model="dialogFormVisible" 
+      title="修改密码" 
+      width="500px"
+      class="password-dialog"
+    >
       <el-form
         :model="pwdForm"
         :rules="updatePwdRules"
         ref="pwdForm"
         label-width="100px"
-        style="width: 400px"
       >
         <el-form-item label="原密码" prop="oldPass">
           <el-input
-            type="password"
             v-model="pwdForm.oldPass"
-            autocomplete="off"
-            clearable
+            type="password"
+            prefix-icon="Lock"
             show-password
-          ></el-input>
+            placeholder="请输入当前密码"
+          />
         </el-form-item>
+        
         <el-form-item label="新密码" prop="password">
           <el-input
-            type="password"
             v-model="pwdForm.password"
-            autocomplete="off"
-            clearable
+            type="password"
+            prefix-icon="Unlock"
             show-password
-          ></el-input>
+            placeholder="6-16位字母数字组合"
+          />
         </el-form-item>
+        
         <el-form-item label="确认密码" prop="checkPass">
           <el-input
-            type="password"
             v-model="pwdForm.checkPass"
-            autocomplete="off"
-            clearable
+            type="password"
+            prefix-icon="Check"
             show-password
-          ></el-input>
+            placeholder="请再次输入新密码"
+          />
         </el-form-item>
 
-        <el-form-item>
-          <el-form-item>
-            <el-button @click="updatePwd('pwdForm')" type="primary">提交</el-button>
-          </el-form-item>
+        <el-form-item class="dialog-footer">
+          <el-button 
+            type="primary"
+            class="submit-btn"
+            @click="updatePwd"
+          >
+            <el-icon class="mr-1"><circle-check /></el-icon>
+            确认修改
+          </el-button>
         </el-form-item>
       </el-form>
     </el-dialog>
@@ -173,68 +192,188 @@ const updatePwd = () => {
 }
 </script>
 
-<style scoped>
-a {
-  text-decoration: none;
-  color: #333;
+<style scoped lang="scss">
+.admin-header {
+  height: 64px;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  z-index: 1000;
+  
+  .header-container {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
 }
 
-.container {
-  line-height: 48px;
+.header-left {
+  .logo-link {
+    display: block;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: scale(1.05);
+      opacity: 0.9;
+    }
+  }
+  
+  .header-logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+  }
 }
 
-.logo {
-  display: block;
-  width: 50px; /* 统一宽高确保正圆 */
-  height: 50px;
-  border-radius: 50%; /* 圆形裁剪 */
-  object-fit: cover; /* 保持图片比例 */
-  /* 移除默认背景 */
-  background-color: transparent;
-  /* 可选：添加轻微阴影提升层次感 */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.header-nav {
+  flex: 1;
+  margin-left: 48px;
+  
+  .nav-item {
+    position: relative;
+    padding: 8px 20px;
+    margin: 0 12px;
+    color: #606266;
+    font-size: 15px;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      color: #4caf50;
+      background: rgba(76, 175, 80, 0.1);
+    }
+    
+    &.nav-active {
+      color: #fff;
+      background: linear-gradient(45deg, #4caf50, #81c784);
+      box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
+    }
+  }
 }
 
-.container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.header-actions {
+  .user-dropdown {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      .user-name {
+        color: #4caf50;
+      }
+      
+      .dropdown-icon {
+        transform: rotate(180deg);
+      }
+    }
+  }
+  
+  .user-info {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: background 0.3s;
+    
+    &:hover {
+      background: rgba(76, 175, 80, 0.05);
+    }
+  }
+  
+  .user-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    margin-right: 6px;
+  }
+  
+  .dropdown-icon {
+    transition: transform 0.3s;
+    color: #666;
+  }
 }
 
-.container .left {
-  font-size: 18px;
+// 下拉菜单样式
+.dropdown-menu {
+  padding: 8px 0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  
+  .menu-item {
+    padding: 8px 20px;
+    color: #606266;
+    transition: all 0.2s;
+    
+    &:hover {
+      color: #4caf50;
+      background: rgba(76, 175, 80, 0.06);
+      
+      i {
+        color: #4caf50;
+      }
+    }
+    
+    i {
+      margin-right: 8px;
+      font-size: 16px;
+    }
+  }
 }
 
-.container .right {
-  margin-right: 40px;
-  cursor: pointer;
+// 密码修改弹窗
+.password-dialog {
+  .el-dialog__header {
+    border-bottom: 1px solid #eee;
+    margin: 0;
+    padding: 16px 24px;
+  }
+  
+  .el-dialog__body {
+    padding: 24px;
+  }
+  
+  .dialog-footer {
+    margin-top: 24px;
+    text-align: center;
+    
+    .submit-btn {
+      width: 200px;
+      height: 40px;
+      font-size: 14px;
+      letter-spacing: 1px;
+      background: linear-gradient(45deg, #4caf50, #81c784);
+      border: none;
+      transition: all 0.3s;
+      
+      &:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+      }
+    }
+  }
 }
 
-.el-dropdown {
-  font-size: 18px;
-  color: #333333;
-}
-
-.container .middle {
-  display: flex;
-  justify-content: left;
-}
-
-.nav-span {
-  text-align: center;
-  width: 150px;
-}
-
-.nav-link {
-  display: inline-block;
-  width: 100%;
-}
-
-.active {
-  background-color: #c5c5c5;
-}
-
-.nav-span:hover {
-  background-color: #c5c5c5;
+@media (max-width: 768px) {
+  .header-container {
+    padding: 0 16px !important;
+  }
+  
+  .header-nav {
+    margin-left: 24px;
+    
+    .nav-item {
+      margin: 0 6px;
+      padding: 6px 12px;
+      font-size: 14px;
+    }
+  }
+  
+  .user-name {
+    display: none;
+  }
 }
 </style>

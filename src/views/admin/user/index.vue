@@ -1,104 +1,149 @@
 <template>
-  <div class="container">
-    <div class="admin-header">
-      <div class="admin-nav">
-        <el-tabs v-model="default_nav" @tab-click="changeTab">
-          <el-tab-pane label="用户列表" name="50">用户列表</el-tab-pane>
-          <el-tab-pane label="解封用户" name="20">解封用户</el-tab-pane>
-        </el-tabs>
+  <div class="user-management">
+    <!-- 操作头部 -->
+    <div class="operation-header">
+      <!-- 状态导航 -->
+      <div class="status-nav">
+        <el-radio-group 
+          v-model="default_nav" 
+          @change="changeTab"
+          class="status-group"
+        >
+          <el-radio-button label="50">全部用户</el-radio-button>
+          <el-radio-button label="20">已封禁</el-radio-button>
+        </el-radio-group>
       </div>
 
-      <div class="admin-search">
-        <el-form :inline="true" ref="search" :model="search" class="demo-form-inline">
-
-          <el-form-item prop="username">
-            <el-input v-model="search.username" placeholder="用户账号" clearable></el-input>
-          </el-form-item>
-
-          <el-form-item>
-            <el-button type="primary" @click="toSearch">查询</el-button>
-          </el-form-item>
-        </el-form>
+      <!-- 搜索区域 -->
+      <div class="search-area">
+        <el-input
+          v-model="search.username"
+          placeholder="输入用户账号搜索"
+          clearable
+          class="search-input"
+          @keyup.enter="toSearch"
+        >
+          <template #prefix>
+            <el-icon class="search-icon"><Search /></el-icon>
+          </template>
+        </el-input>
+        <el-button 
+          type="primary" 
+          class="search-btn"
+          @click="toSearch"
+        >
+          查询
+        </el-button>
       </div>
     </div>
 
-
-    <div class="admin-content">
-
+    <!-- 数据表格 -->
+    <div class="data-container">
       <el-table
-          :data="userList"
-          border
-          style="width: 100%">
-
+        :data="userList"
+        border
+        stripe
+        highlight-current-row
+        class="data-table"
+      >
         <el-table-column
-            fixed
-            prop="index"
-            label="序号"
-            width="80">
-          <template v-slot="scope">
-            <span>{{ scope.$index + 1 }}</span>
+          label="序号"
+          width="80"
+          align="center"
+        >
+          <template #default="{ $index }">
+            <span class="index-number">{{ $index + 1 }}</span>
           </template>
         </el-table-column>
 
         <el-table-column
-            prop="username"
-            label="账号"
-            show-overflow-tooltip
-            width="200">
-        </el-table-column>
+          prop="username"
+          label="用户账号"
+          min-width="180"
+          show-overflow-tooltip
+        />
 
         <el-table-column
-            prop="nickname"
-            label="昵称"
-            width="150">
-        </el-table-column>
+          prop="nickname"
+          label="用户昵称"
+          width="150"
+        />
 
         <el-table-column
-            prop="avatar"
-            label="头像"
-            width="150">
-          <template v-slot="scope">
-            <el-popover placement="top-start" title="" trigger="hover">
-              <img :src="require('@/assets/avatar/'+scope.row.avatar)" style="width: 250px;height: 250px"/>
-              <template #reference>
-                <img :src="require('@/assets/avatar/'+scope.row.avatar)" style="width: 50px;height: 50px;"/>
+          label="用户头像"
+          width="140"
+          align="center"
+        >
+          <template #default="{ row }">
+            <el-image 
+              :src="require('@/assets/avatar/'+row.avatar)"
+              :preview-src-list="[require('@/assets/avatar/'+row.avatar)]"
+              fit="cover"
+              class="user-avatar"
+            >
+              <template #error>
+                <div class="avatar-error">
+                  <el-icon><User /></el-icon>
+                </div>
               </template>
-            </el-popover>
+            </el-image>
           </template>
         </el-table-column>
 
         <el-table-column
-            fixed="right"
-            label="操作"
-            width="200">
-          <template v-slot="scope">
-            <el-button link size="small">查看</el-button>
-            <el-button v-if="scope.row.status === 10" link  style="color: #e55757" size="small"
-                       @click="lockUser(scope.$index)">封禁
-            </el-button>
-            <el-button v-if="scope.row.status === 20" link  style="color: #ffb73d" size="small"
-                       @click="unLockUser(scope.$index)">解封
-            </el-button>
+          label="操作"
+          width="200"
+          fixed="right"
+        >
+          <template #default="{ row, $index }">
+            <div class="action-btns">
+              <el-button 
+                type="primary" 
+                link
+                class="view-btn"
+              >
+                详情
+              </el-button>
+              <el-button
+                v-if="row.status === 10"
+                type="danger"
+                link
+                class="lock-btn"
+                @click="lockUser($index)"
+              >
+                封禁
+              </el-button>
+              <el-button
+                v-if="row.status === 20"
+                type="warning"
+                link
+                class="unlock-btn"
+                @click="unLockUser($index)"
+              >
+                解封
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
 
-      <el-pagination
+      <!-- 分页 -->
+      <div class="pagination-wrapper">
+        <el-pagination
           background
-          layout="prev, pager, next"
-          :total="1000">
-      </el-pagination>
-
+          layout="prev, pager, next, total"
+          :total="1000"
+          class="smart-pagination"
+        />
+      </div>
     </div>
-
   </div>
 </template>
 
 <script setup>
-
-import {getUserList} from "@/api/user"
-import {ref} from "vue";
-import {ElMessage} from "element-plus";
+import { ref } from 'vue'
+import { ElMessage } from 'element-plus'
+import { getUserList } from '@/api/user'
 
 const default_nav = ref("50")
 const userList = ref([])
@@ -122,58 +167,147 @@ const toSearch = () => {
 
 const lockUser = (index) => {
   userList.value[index].status = 20
+  ElMessage.success("操作成功")
 }
 
 const unLockUser = (index) => {
   userList.value[index].status = 10
+  ElMessage.success("操作成功")
 }
 
-const changeTab = (tab) =>{
+const changeTab = () => {
   initData()
-  let tabName = tab.props.name
-  if (tabName === "50") {
-    return
-  }
-  let list = []
-  userList.value.forEach(item => {
-    if (tabName === (item.status + "")) {
-      list.push(item)
-    }
-  })
-  userList.value = list
+  if (default_nav.value === "50") return
+  
+  userList.value = userList.value.filter(
+    item => item.status.toString() === default_nav.value
+  )
 }
-
 </script>
 
-<style scoped>
-.admin-header {
+<style lang="scss" scoped>
+.user-management {
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.operation-header {
   display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
 }
 
-.admin-nav {
-  border: 1px solid #666666;
-  padding: 20px;
-  border-radius: 10px;
-  width: 400px;
-  margin-right: 20px;
+.status-nav {
+  flex: 1;
+  min-width: 300px;
+  
+  :deep(.el-radio-group) {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .el-radio-button {
+    --el-radio-button-checked-bg-color: #{rgba(76, 175, 80, 0.1)};
+    --el-radio-button-checked-text-color: #4caf50;
+    --el-radio-button-checked-border-color: #4caf50;
+    
+    .el-radio-button__inner {
+      border-radius: 6px !important;
+      padding: 8px 20px;
+      transition: all 0.3s ease;
+    }
+  }
 }
 
-.admin-search {
-  border: 1px solid #666666;
-  padding: 20px;
-  border-radius: 10px;
-  width: 400px;
+.search-area {
+  display: flex;
+  gap: 12px;
+  min-width: 400px;
+  flex: 1;
+  
+  .search-input {
+    flex: 1;
+    
+    :deep(.el-input__inner) {
+      border-radius: 6px;
+      padding-left: 34px;
+    }
+  }
+  
+  .search-btn {
+    background: linear-gradient(45deg, #4caf50, #81c784);
+    border: none;
+    padding: 10px 24px;
+  }
 }
 
-.admin-content {
-  margin-top: 20px;
-  border: 1px solid #666666;
-  padding: 20px;
-  border-radius: 10px;
-  width: 1580px;
+.data-container {
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.el-pagination {
-  margin: 20px;
+.data-table {
+  :deep(th) {
+    background: #f8fafc !important;
+    font-weight: 600;
+  }
+  
+  .user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    transition: transform 0.3s;
+    
+    &:hover {
+      transform: scale(2);
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  .action-btns {
+    display: flex;
+    gap: 12px;
+    
+    .view-btn { color: #4caf50; }
+    .lock-btn { color: #f56c6c; }
+    .unlock-btn { color: #e6a23c; }
+  }
+}
+
+.pagination-wrapper {
+  padding: 16px;
+  background: #f8fafc;
+  
+  .smart-pagination {
+    :deep(.active) {
+      background: #4caf50 !important;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .operation-header {
+    gap: 16px;
+  }
+  
+  .status-nav,
+  .search-area {
+    min-width: 100%;
+  }
+  
+  .data-table {
+    :deep(.el-table__body-wrapper) {
+      overflow-x: auto;
+    }
+  }
+  
+  .search-btn {
+    padding: 10px 16px !important;
+  }
 }
 </style>
